@@ -44,15 +44,16 @@ export default function Home() {
 
       <TaglineReveal
         words={[
-          { text: "npm", rainbow: true },
-          { text: "registry", rainbow: true },
-          { text: "changes" },
+          { text: "every", rainbow: true },
+          { text: "registry,", rainbow: true },
+          { text: "every" },
+          { text: "release" },
           { text: "→" },
           { text: "your", rainbow: true },
           { text: "inbox.", rainbow: true },
         ]}
         zhWords={[
-          { text: "registry", rainbow: true },
+          { text: "各大仓库", rainbow: true },
           { text: "一有风吹草动，" },
           { text: "邮件", rainbow: true },
           { text: "立刻到达。", rainbow: true },
@@ -79,9 +80,24 @@ export default function Home() {
           </p>
           <div className="pkg-row" style={{ minHeight: 48 }}>
             <span className="brand-orb" style={{ width: 12, height: 12 }} />
-            <span className="pkg-name">@cloudflare/vite-plugin</span>
+            <span className="pkg-name">vite</span>
+            <span className="pill violet mono" style={{ fontSize: 11, height: 20 }}>npm</span>
             <span className="grow" />
-            <span className="pill positive mono">v1.67.0</span>
+            <span className="pill positive mono">8.3.5</span>
+          </div>
+          <div className="pkg-row" style={{ minHeight: 48 }}>
+            <span className="brand-orb" style={{ width: 12, height: 12 }} />
+            <span className="pkg-name">requests</span>
+            <span className="pill violet mono" style={{ fontSize: 11, height: 20 }}>pypi</span>
+            <span className="grow" />
+            <span className="pill positive mono">2.34.2</span>
+          </div>
+          <div className="pkg-row" style={{ minHeight: 48 }}>
+            <span className="brand-orb" style={{ width: 12, height: 12 }} />
+            <span className="pkg-name">serde</span>
+            <span className="pill violet mono" style={{ fontSize: 11, height: 20 }}>crates</span>
+            <span className="grow" />
+            <span className="pill positive mono">1.0.229</span>
           </div>
         </div>
       </Enter>

@@ -4,7 +4,7 @@ import { initReactI18next } from "react-i18next";
 const en = {
   app: {
     name: "packages-notifier",
-    tagline: "Watch npm packages. Get emailed when they update.",
+    tagline: "Watch packages across 7 registries. Get emailed when they update.",
   },
   nav: {
     home: "Home",
@@ -13,9 +13,9 @@ const en = {
     query: "Query",
   },
   home: {
-    title: "Watch npm packages.",
+    title: "Watch any package.",
     titleAccent: "Emailed on updates.",
-    sub: "Point it at any npm package — every new version lands in your inbox. Verification by email code, no accounts.",
+    sub: "npm, PyPI, crates.io, Go, Maven, RubyGems, NuGet — every new version lands in your inbox. Verification by email code, no accounts.",
     cta: "Start watching",
     queryCta: "Query a package",
     stats: {
@@ -23,18 +23,18 @@ const en = {
       subscribers: "subscriptions",
       notified: "emails sent",
     },
-    example: "e.g. @cloudflare/vite-plugin",
+    example: "e.g. vite · requests · serde · gin",
   },
   query: {
     title: "Package query",
-    sub: "Live metadata straight from the npm registry.",
-    placeholder: "Search npm packages…",
+    sub: "Live metadata straight from the package registries.",
+    placeholder: "Package name… e.g. vite, requests, serde",
     search: "Query",
     acHint: "Type at least 2 characters to search npm",
     latest: "latest",
     versions: "versions",
     modified: "modified",
-    notFound: "Package not found on npm.",
+    notFound: "Package not found.",
     watch: "Watch this package",
   },
   subscribe: {
@@ -42,9 +42,9 @@ const en = {
     step1: "Email & package",
     step2: "Verification code",
     email: "Email address",
-    package: "npm package",
+    package: "Package name",
     ecosystem: "Package registry",
-    pkgPlaceholder: "Search npm packages…",
+    pkgPlaceholder: "Package name… e.g. vite, requests",
     sendCode: "Send code",
     codeSent: "Code sent to {{email}}. Check your inbox.",
     code: "6-digit code",
@@ -129,13 +129,13 @@ const en = {
     network: "Network error. Is the server running?",
     required: "This field is required.",
   },
-  footer: { made: "npm registry changes → your inbox", mcp: "MCP server at /mcp" },
+  footer: { made: "7 package registries → your inbox", mcp: "MCP server at /mcp" },
 };
 
 const zh = {
   app: {
     name: "packages-notifier",
-    tagline: "关注 npm 包，更新即邮件通知。",
+    tagline: "跨 7 大包仓库关注更新，即刻邮件通知。",
   },
   nav: {
     home: "首页",
@@ -144,9 +144,9 @@ const zh = {
     query: "查询",
   },
   home: {
-    title: "盯住 npm 包，",
+    title: "盯住任意包，",
     titleAccent: "更新第一时间进邮箱。",
-    sub: "填一个 npm 包名即可开始关注 —— 每次发新版本，邮件直达。全程邮箱验证码验证，无需注册账号。",
+    sub: "npm、PyPI、crates.io、Go、Maven、RubyGems、NuGet —— 每次发新版本，邮件直达。全程邮箱验证码验证，无需注册账号。",
     cta: "开始关注",
     queryCta: "查询一个包",
     stats: {
@@ -154,18 +154,18 @@ const zh = {
       subscribers: "条订阅",
       notified: "封通知已发",
     },
-    example: "例如 @cloudflare/vite-plugin",
+    example: "例如 vite · requests · serde · gin",
   },
   query: {
     title: "包查询",
-    sub: "直连 npm registry 的实时元数据。",
-    placeholder: "搜索 npm 包名…",
+    sub: "直连各大包仓库的实时元数据。",
+    placeholder: "包名…如 vite、requests、serde",
     search: "查询",
-    acHint: "输入至少 2 个字符即可搜索 npm",
+    acHint: "输入至少 2 个字符即可搜索",
     latest: "最新版",
     versions: "个版本",
     modified: "最近更新",
-    notFound: "npm 上没有找到这个包。",
+    notFound: "没有找到这个包。",
     watch: "关注这个包",
   },
   subscribe: {
@@ -173,9 +173,9 @@ const zh = {
     step1: "邮箱与包名",
     step2: "邮箱验证码",
     email: "邮箱地址",
-    package: "npm 包名",
+    package: "包名",
     ecosystem: "包仓库",
-    pkgPlaceholder: "搜索 npm 包名…",
+    pkgPlaceholder: "包名…如 vite、requests",
     sendCode: "发送验证码",
     codeSent: "验证码已发至 {{email}}，请查收。",
     code: "6 位验证码",
@@ -260,7 +260,7 @@ const zh = {
     network: "网络错误，服务是否在运行？",
     required: "必填。",
   },
-  footer: { made: "npm registry 变更 → 你的收件箱", mcp: "MCP 服务挂载于 /mcp" },
+  footer: { made: "7 大包仓库变更 → 你的收件箱", mcp: "MCP 服务挂载于 /mcp" },
 };
 
 i18n.use(initReactI18next).init({
