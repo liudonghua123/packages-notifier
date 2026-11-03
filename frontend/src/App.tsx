@@ -67,14 +67,16 @@ export default function App() {
         {navItems.map((item) => (
           <NavLink key={item.to} to={item.to} end={item.end}>
             {({ isActive }) => (
-              <span
-                className={isActive ? "active" : ""}
-                style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 4, position: "relative" }}
-              >
+              <>
                 {isActive && <span className="nav-dot" />}
-                <BottomIcon name={item.to} />
-                {item.label}
-              </span>
+                <span
+                  className={isActive ? "active" : ""}
+                  style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 4 }}
+                >
+                  <BottomIcon name={item.to} />
+                  {item.label}
+                </span>
+              </>
             )}
           </NavLink>
         ))}

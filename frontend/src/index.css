@@ -120,6 +120,8 @@ input {
   border-radius: 12px;
   height: 48px;
   padding: 0 16px;
+  min-width: 0;
+  text-overflow: ellipsis;
   transition: border-color 0.3s var(--ease-fluid), background 0.3s var(--ease-fluid);
 }
 input::placeholder { color: var(--muted); opacity: 0.75; }
@@ -558,7 +560,7 @@ code, .mono {
   flex-direction: column;
   align-items: center;
   gap: 4px;
-  padding: 8px 16px;
+  padding: 10px 16px 18px;
   color: var(--muted);
   font-size: 12px;
   font-weight: 600;
@@ -572,10 +574,10 @@ code, .mono {
 
 .bottombar a.active .nav-dot {
   position: absolute;
-  bottom: 2px;
+  bottom: 4px;
   left: 50%;
   transform: translateX(-50%);
-  width: 20px;
+  width: 18px;
   height: 3px;
   border-radius: 2px;
   background: linear-gradient(90deg, var(--accent), var(--accent-2));
