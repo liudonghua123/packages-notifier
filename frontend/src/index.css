@@ -162,10 +162,46 @@ code, .mono {
   gap: 8px;
   padding: 8px;
   border-radius: var(--radius-control);
-  background: color-mix(in srgb, var(--surface) 72%, transparent);
-  backdrop-filter: blur(20px);
-  -webkit-backdrop-filter: blur(20px);
-  box-shadow: var(--shadow);
+  background: color-mix(in srgb, var(--surface) 78%, transparent);
+  backdrop-filter: blur(24px) saturate(1.4);
+  -webkit-backdrop-filter: blur(24px) saturate(1.4);
+  box-shadow:
+    0 6px 16px rgba(0, 0, 0, 0.15),
+    0 16px 40px rgba(0, 0, 0, 0.25),
+    0 0 0 1px color-mix(in srgb, var(--accent) 24%, transparent);
+  animation: bar-float 6s ease-in-out infinite;
+}
+
+/* rotating conic ring traced around the island */
+.topbar::before {
+  content: "";
+  position: absolute;
+  inset: -2px;
+  border-radius: inherit;
+  padding: 2px;
+  background: conic-gradient(
+    from var(--ring-angle, 0deg),
+    transparent 0%,
+    var(--accent) 12%,
+    var(--accent-2) 22%,
+    transparent 34%,
+    transparent 50%,
+    var(--accent-4) 62%,
+    var(--accent-3) 72%,
+    transparent 84%
+  );
+  -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor;
+  mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+  mask-composite: exclude;
+  opacity: 0.85;
+  pointer-events: none;
+  animation: ring-rotate 7s linear infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .topbar { animation: none; }
+  .topbar::before { animation: none; opacity: 0.45; }
 }
 
 .brand {
@@ -219,6 +255,52 @@ code, .mono {
 }
 
 .logo:hover .logo-box { animation-duration: 1.4s; }
+
+/* ---------- dynamic icon set (icons.tsx) ---------- */
+.di { display: block; }
+.di path, .di circle, .di rect { vector-effect: non-scaling-stroke; }
+
+/* home: roof shimmer + heartbeat spark */
+.di-home-roof { stroke-dasharray: 14 10; animation: di-dash 3.4s linear infinite; }
+.di-home-spark { transform-origin: 12px 15px; animation: di-beat 2.2s ease-in-out infinite; }
+@keyframes di-dash { to { stroke-dashoffset: -24; } }
+@keyframes di-beat { 0%, 100% { transform: scale(1); opacity: 1; } 40% { transform: scale(1.5); opacity: 0.75; } }
+
+/* search: handle sweeps like scanning */
+.di-search-handle { transform-origin: 16.5px 16.5px; animation: di-sweep 2.8s ease-in-out infinite; }
+@keyframes di-sweep { 0%, 100% { transform: rotate(0deg); } 50% { transform: rotate(28deg); } }
+
+/* list: lines write in sequence */
+.di-list path { stroke-dasharray: 18; stroke-dashoffset: 0; }
+.di-list-l1 { animation: di-write 3s var(--ease-fluid) infinite; }
+.di-list-l2 { animation: di-write 3s var(--ease-fluid) 0.4s infinite; }
+.di-list-l3 { animation: di-write 3s var(--ease-fluid) 0.8s infinite; }
+@keyframes di-write { 0% { stroke-dashoffset: 18; opacity: 0; } 25% { stroke-dashoffset: 0; opacity: 1; } 80% { stroke-dashoffset: 0; opacity: 1; } 90%, 100% { stroke-dashoffset: 18; opacity: 0; } }
+
+/* gear: slow rotation */
+.di-gear-rot { transform-origin: 12px 12px; animation: di-spin 9s linear infinite; }
+@keyframes di-spin { to { transform: rotate(360deg); } }
+
+/* sun: rays rotate, core breathes */
+.di-sun-rays { transform-origin: 12px 12px; animation: di-spin 14s linear infinite; }
+.di-sun-rays circle { transform-origin: 12px 12px; animation: di-breathe 2.6s ease-in-out infinite; }
+@keyframes di-breathe { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.14); } }
+
+/* moon: stars twinkle */
+.di-moon-s1 { transform-origin: 18px 5px; animation: di-twinkle 2.2s ease-in-out infinite; }
+.di-moon-s2 { transform-origin: 21.5px 9px; animation: di-twinkle 2.2s ease-in-out 1.1s infinite; }
+@keyframes di-twinkle { 0%, 100% { opacity: 1; transform: scale(1); } 50% { opacity: 0.25; transform: scale(0.6); } }
+
+/* check: draws itself in a loop */
+.di-check-path { stroke-dasharray: 26; animation: di-draw 2.6s var(--ease-fluid) infinite; }
+@keyframes di-draw { 0% { stroke-dashoffset: 26; } 45%, 75% { stroke-dashoffset: 0; } 100% { stroke-dashoffset: -26; } }
+
+/* mail: notification dot blinks */
+.di-mail-dot { transform-origin: 19.5px 5.5px; animation: di-beat 2s ease-in-out infinite; }
+
+@media (prefers-reduced-motion: reduce) {
+  .di path, .di circle, .di rect, .di g { animation: none !important; }
+}
 
 @media (prefers-reduced-motion: reduce) {
   .logo-box, .logo-ring, .logo-dot { animation: none; }
@@ -490,7 +572,7 @@ code, .mono {
 
 .bottombar a.active .nav-dot {
   position: absolute;
-  top: 2px;
+  bottom: 2px;
   left: 50%;
   transform: translateX(-50%);
   width: 20px;

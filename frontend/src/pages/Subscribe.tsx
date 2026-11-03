@@ -4,6 +4,7 @@ import { AnimatePresence, motion } from "motion/react";
 import { api, apiErrMessage } from "../api";
 import PackageInput from "../PackageInput";
 import { Enter } from "../motion-bits";
+import { CheckIcon } from "../icons";
 
 export default function Subscribe() {
   const { t } = useTranslation();
@@ -172,9 +173,7 @@ export default function Subscribe() {
                 boxShadow: "var(--shadow-accent)",
               }}
             >
-              <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M20 6 9 17l-5-5" />
-              </svg>
+              <CheckIcon />
             </motion.div>
             <p style={{ margin: "0 0 24px", fontWeight: 700, fontSize: 18 }}>
               {t("subscribe.success", { package: pkg })}
