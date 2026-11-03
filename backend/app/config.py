@@ -40,6 +40,24 @@ DEFAULTS: dict[str, Any] = {
         "npm_registry": "https://registry.npmjs.org",
         "replicate_changes": "https://replicate.npmjs.com/registry/_changes",
     },
+    "ecosystems": {
+        "pypi_index": "https://pypi.org/pypi",
+        "crates_api": "https://crates.io/api/v1/crates",
+        "go_proxy": "https://goproxy.cn",
+        "rubygems_api": "https://rubygems.org/api/v1/gems",
+        "maven_search": "https://search.maven.org/solrsearch/select",
+        "nuget_flat": "https://api.nuget.org/v3-flatcontainer",
+        # per-ecosystem check interval in seconds; falls back to poll.interval_seconds
+        "interval_overrides": {
+            "npm": 300,
+            "pypi": 600,
+            "crates": 900,
+            "go": 900,
+            "rubygems": 900,
+            "maven": 1800,
+            "nuget": 1800,
+        },
+    },
     "verification": {
         "code_ttl_seconds": 600,
         "code_length": 6,
@@ -74,6 +92,7 @@ class Config(BaseModel):
     admin: dict[str, Any] = Field(default_factory=lambda: dict(DEFAULTS["admin"]))
     poll: dict[str, Any] = Field(default_factory=lambda: dict(DEFAULTS["poll"]))
     registry: dict[str, Any] = Field(default_factory=lambda: dict(DEFAULTS["registry"]))
+    ecosystems: dict[str, Any] = Field(default_factory=lambda: dict(DEFAULTS["ecosystems"]))
     verification: dict[str, Any] = Field(default_factory=lambda: dict(DEFAULTS["verification"]))
     rate_limit: dict[str, Any] = Field(default_factory=lambda: dict(DEFAULTS["rate_limit"]))
 

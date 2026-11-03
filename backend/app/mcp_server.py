@@ -40,20 +40,30 @@ async def get_package_info(package: str) -> dict[str, Any]:
 
 
 @mcp.tool
+async def list_ecosystems() -> dict[str, Any]:
+    """List supported package ecosystems (npm, pypi, crates, go, rubygems, maven, nuget) with their check intervals."""
+    from .api import list_ecosystems as _list
+    return await _list()
+
+
+@mcp.tool
 async def request_subscription_code(
     email: str,
     package: str,
     version_match: str = "any",
     version_pattern: str = "",
+    package_type: str = "npm",
 ) -> dict[str, Any]:
     """Step 1 of subscribing: request a verification code sent to the email for watching a package.
 
-    Optional version filtering: version_match is one of "any" (default),
-    "equals", "startswith", "regexmatch"; version_pattern is the value
+    package_type selects the ecosystem (npm, pypi, crates, go,
+    rubygems, maven, nuget). Optional version filtering:
+    version_match is one of "any" (default), "equals",
+    "startswith", "regexmatch"; version_pattern is the value
     compared against the new version string (required unless "any").
     """
     from .api import subscribe_request_code
-    body = {"email": email, "package": package}
+    body = {"email": email, "package": package, "package_type": package_type}
     if version_match != "any":
         body["version_match"] = version_match
         body["version_pattern"] = version_pattern

@@ -10,7 +10,7 @@ from typing import Any
 
 from fastapi import APIRouter, Depends, Header, HTTPException, Request
 
-from . import db, notify
+from . import db, notify, providers
 from .config import config, save_config
 from .email_sender import send_email, verification_email_html
 from .registry import client
@@ -90,7 +90,28 @@ async def search_packages(q: str) -> dict:
 async def list_packages() -> dict:
     """Public list of watched packages with latest versions."""
     pkgs = await db.run(db.list_packages)
-    return {"packages": pkgs}
+    return {
+        "packages": [
+            {**p, "package_type": p.get("package_type") or "npm"}
+            for p in pkgs
+        ]
+    }
+
+
+@router.get("/api/ecosystems")
+async def list_ecosystems() -> dict:
+    """Supported package ecosystems with labels + configured check intervals."""
+    return {
+        "ecosystems": [
+            {
+                "type": t,
+                "label": providers.ECOSYSTEM_LABELS.get(t, t),
+                "interval_seconds": (config.ecosystems or {}).get("interval_overrides", {}).get(t)
+                or config.poll.get("interval_seconds", 300),
+            }
+            for t in providers.supported_types()
+        ]
+    }
 
 
 @router.get("/api/packages/{name:path}")
@@ -135,14 +156,20 @@ async def subscribe_request_code(body: dict[str, Any]) -> dict:
     email = str(body.get("email", "")).strip().lower()
     package = str(body.get("package", "")).strip()
     version_match, version_pattern = _version_rule(body)
+    package_type = str(body.get("package_type") or "npm").strip().lower()
+    if package_type not in providers.supported_types():
+        raise HTTPException(400, f"unsupported package_type, must be one of {providers.supported_types()}")
     await _validate_email(email)
-    package = await _validate_package(package)
+    if package_type == "npm":
+        package = await _validate_package(package)
 
-    # confirm the package actually exists on the registry
+    # confirm the package actually exists in its registry
     try:
-        meta = await fetch_package_meta(package)
+        result = await providers.fetch_latest(package_type, package)
     except Exception:
-        raise HTTPException(404, f"package not found on npm: {package}")
+        result = None
+    if result is None:
+        raise HTTPException(404, f"package not found in {package_type}: {package}")
 
     max_req = int(config.rate_limit.get("code_request_per_email_per_hour", 5))
     n = await db.run(db.code_requests_in_window, email, 3600)
@@ -154,7 +181,8 @@ async def subscribe_request_code(body: dict[str, Any]) -> dict:
         db.create_code, email, "subscribe", code,
         {
             "package": package,
-            "latest": meta.get("latest"),
+            "package_type": package_type,
+            "latest": result.get("version"),
             "version_match": version_match,
             "version_pattern": version_pattern,
         },
@@ -162,7 +190,7 @@ async def subscribe_request_code(body: dict[str, Any]) -> dict:
     )
     subject, html = verification_email_html(code, "subscribe", package, _ttl_minutes())
     await send_email(email, subject, html)
-    return {"ok": True, "package": package, "latest": meta.get("latest"), "dev_code": code if not config.smtp.get("host") else None}
+    return {"ok": True, "package": package, "latest": result.get("version"), "dev_code": code if not config.smtp.get("host") else None}
 
 
 @router.post("/api/subscribe/verify")
@@ -184,16 +212,20 @@ async def subscribe_verify(body: dict[str, Any]) -> dict:
 
     version_match = payload.get("version_match") or "any"
     version_pattern = payload.get("version_pattern")
+    package_type = payload.get("package_type") or "npm"
     await db.run(db.add_subscription, email, package, version_match, version_pattern)
     await db.run(db.mark_verified, email, package)
-    # make sure the package is watched
-    meta = None
-    try:
-        meta = await fetch_package_meta(package)
-    except Exception:
-        pass
-    await db.run(db.upsert_package, package, (meta or {}).get("latest"), email)
+    # make sure the package is watched (record its initial version)
+    await db.run(db.upsert_package, package, (await _safe_latest(package_type, package)), email, package_type)
     return {"ok": True, "email": email, "package": package}
+
+
+async def _safe_latest(package_type: str, package: str) -> str | None:
+    try:
+        result = await providers.fetch_latest(package_type, package)
+    except Exception:
+        return None
+    return (result or {}).get("version")
 
 
 @router.post("/api/unsubscribe/request-code")

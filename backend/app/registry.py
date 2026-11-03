@@ -7,6 +7,7 @@ from typing import Any
 
 import httpx
 
+from . import providers
 from .config import config
 
 _client: httpx.AsyncClient | None = None
@@ -93,16 +94,37 @@ async def fetch_changes_since(seq: int, limit: int = 100) -> dict[str, Any]:
 
 # ---------- polling worker ----------
 
+def _interval_for(package_type: str) -> int:
+    """Check interval for an ecosystem; falls back to the global poll interval."""
+    overrides = (config.ecosystems or {}).get("interval_overrides") or {}
+    try:
+        v = int(overrides.get(package_type, 0))
+    except (TypeError, ValueError):
+        v = 0
+    if v > 0:
+        return v
+    return int(config.poll.get("interval_seconds", 300))
+
+
 class Poller:
-    """Periodically checks watched packages and emails subscribers on updates."""
+    """Periodically checks watched packages and emails subscribers on updates.
+
+    Multi-ecosystem: each package row carries a package_type (npm, pypi,
+    crates, go, rubygems, maven, nuget). Packages of every type are checked
+    on every tick, but each type's last_run is tracked separately so
+    per-ecosystem intervals are respected. npm packages that have never
+    been checked start with their initial version recorded (no email for
+    the first observation).
+    """
 
     def __init__(self, check_fn):
-        # check_fn(package, old_version, new_version) -> coroutine (send notifications)
+        # check_fn(package, old_version, new_version, meta) -> coroutine
         self.check_fn = check_fn
         self._task: asyncio.Task | None = None
         self._running = False
         self.last_run: float | None = None
         self.last_error: str | None = None
+        self._type_last_run: dict[str, float] = {}
 
     async def start(self) -> None:
         if self._running:
@@ -127,27 +149,62 @@ class Poller:
                 self.last_error = None
             except Exception as exc:  # keep the loop alive
                 self.last_error = repr(exc)
-            await asyncio.sleep(int(config.poll.get("interval_seconds", 300)))
+            # sleep a fraction of the smallest configured interval
+            intervals = [_interval_for(t) for t in providers.supported_types()]
+            intervals.append(int(config.poll.get("interval_seconds", 300)))
+            await asyncio.sleep(max(30, min(intervals) // 2))
 
-    async def run_once(self) -> list[dict[str, Any]]:
-        """Check all watched packages; return list of detected updates."""
+    async def run_once(self, force: bool = False) -> list[dict[str, Any]]:
+        """Check watched packages whose per-type interval has elapsed.
+
+        Returns list of detected updates. With force=True every package
+        is checked regardless of intervals.
+        """
         from . import db
 
         updates: list[dict[str, Any]] = []
         packages = await db.run(db.list_packages)
+        now = time.time()
+        checked_types: set[str] = set()
         for pkg in packages:
             name = pkg["package"]
+            ptype = pkg.get("package_type") or "npm"
             old = pkg.get("latest_version")
+            never_checked = not pkg.get("last_checked_at")
+
+            # respect per-type intervals
+            if not force and not never_checked:
+                interval = _interval_for(ptype)
+                last = self._type_last_run.get(ptype, 0)
+                if now - last < interval and pkg.get("last_checked_at") and now - pkg["last_checked_at"] < interval:
+                    continue
+
             try:
-                meta = await fetch_package_meta(name)
+                result = await providers.fetch_latest(ptype, name)
             except Exception:
-                await db.run(db.upsert_package, name, old, pkg.get("added_by"))
+                await db.run(db.upsert_package, name, old, pkg.get("added_by"), ptype, pkg.get("description"))
                 continue
-            latest = meta.get("latest")
+
+            if result is None:
+                # package vanished from its registry; keep last known state
+                await db.run(db.upsert_package, name, old, pkg.get("added_by"), ptype, pkg.get("description"))
+                continue
+
+            latest = result.get("version")
+            desc = result.get("description")
+            checked_types.add(ptype)
+
             if latest and old and latest != old:
+                meta = {
+                    "name": name,
+                    "latest": latest,
+                    "description": desc or "",
+                    "package_type": ptype,
+                }
                 updates.append(
                     {
                         "package": name,
+                        "package_type": ptype,
                         "old_version": old,
                         "new_version": latest,
                         "meta": meta,
@@ -155,10 +212,12 @@ class Poller:
                 )
                 await self.check_fn(name, old, latest, meta)
             elif latest and not old:
+                # first observation: record initial version, no notification
                 await db.run(db.update_package_version, name, latest)
             else:
-                await db.run(
-                    db.upsert_package, name, latest or old, pkg.get("added_by")
-                )
-        self.last_run = time.time()
+                await db.run(db.upsert_package, name, latest or old, pkg.get("added_by"), ptype, desc)
+
+        for t in checked_types:
+            self._type_last_run[t] = now
+        self.last_run = now
         return updates

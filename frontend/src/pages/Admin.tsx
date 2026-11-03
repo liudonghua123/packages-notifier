@@ -6,12 +6,15 @@ import { Enter } from "../motion-bits";
 
 type Cfg = Record<string, any>;
 
+type Eco = { type: string; label: string; interval_seconds: number };
+
 export default function Admin() {
   const { t } = useTranslation();
   const [token, setToken] = useState(() => sessionStorage.getItem("pn-admin") || "");
   const [authed, setAuthed] = useState(false);
   const [cfg, setCfg] = useState<Cfg | null>(null);
-  const [pkgs, setPkgs] = useState<{ package: string; latest_version: string | null; added_at: number }[]>([]);
+  const [pkgs, setPkgs] = useState<{ package: string; latest_version: string | null; added_at: number; package_type?: string }[]>([]);
+  const [ecos, setEcos] = useState<Eco[]>([]);
   const [poller, setPoller] = useState<{ running: boolean; last_run: number | null; interval_seconds: number } | null>(null);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
@@ -24,6 +27,7 @@ export default function Admin() {
     sessionStorage.setItem("pn-admin", tok);
     api.listPackages().then((d) => setPkgs(d.packages)).catch(() => {});
     api.pollerStatus().then(setPoller).catch(() => {});
+    api.listEcosystems().then((d) => setEcos(d.ecosystems)).catch(() => {});
   };
 
   useEffect(() => {
@@ -136,6 +140,25 @@ export default function Admin() {
         </Section>
       </Enter>
 
+      <Enter delay={0.12}>
+        <Section title={t("admin.ecosystems")} color="var(--accent-5)">
+          <p style={{ margin: "0 0 12px", color: "var(--muted)", fontSize: 13 }}>
+            {t("admin.ecosystemsHint")}
+          </p>
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))", gap: "16px 24px" }}>
+            {(cfg.ecosystems?.interval_overrides ? Object.keys(cfg.ecosystems.interval_overrides) : []).map((eco) => (
+              <Field
+                key={eco}
+                label={`${eco} · ${ecos.find((e) => e.type === eco)?.label || eco}`}
+                value={cfg.ecosystems.interval_overrides[eco]}
+                onChange={(v: string) => set(["ecosystems", "interval_overrides", eco], Number(v))}
+                type="number"
+              />
+            ))}
+          </div>
+        </Section>
+      </Enter>
+
       <Enter delay={0.15}>
         <Section title={t("admin.smtp")} color="var(--accent-2)">
           <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))", gap: "16px 24px" }}>
@@ -178,7 +201,14 @@ export default function Admin() {
           </div>
           {pkgs.map((p) => (
             <div key={p.package} className="pkg-row" style={{ minHeight: 44 }}>
-              <span className="pkg-name grow">{p.package}</span>
+              <span className="pkg-name grow">
+                {p.package}
+                {(p.package_type || "npm") !== "npm" && (
+                  <span className="pill violet mono" style={{ marginLeft: 8, fontSize: 11, height: 20 }}>
+                    {p.package_type}
+                  </span>
+                )}
+              </span>
               <span className="pkg-ver">{p.latest_version || "—"}</span>
               <span className="pkg-ver" style={{ fontSize: 12 }}>{new Date(p.added_at * 1000).toLocaleDateString()}</span>
             </div>

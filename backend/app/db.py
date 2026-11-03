@@ -50,7 +50,9 @@ def _init_schema(conn: sqlite3.Connection) -> None:
             latest_version TEXT,
             last_checked_at REAL,
             added_at REAL NOT NULL,
-            added_by TEXT                   -- email of first subscriber
+            added_by TEXT,                  -- email of first subscriber
+            package_type TEXT NOT NULL DEFAULT 'npm',
+            description TEXT
         );
         CREATE TABLE IF NOT EXISTS notifications (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -78,6 +80,12 @@ def _init_schema(conn: sqlite3.Connection) -> None:
         )
     if "version_pattern" not in cols:
         conn.execute("ALTER TABLE subscriptions ADD COLUMN version_pattern TEXT")
+    # multi-ecosystem support: package_type + description
+    pcols = {r["name"] for r in conn.execute("PRAGMA table_info(packages)").fetchall()}
+    if "package_type" not in pcols:
+        conn.execute("ALTER TABLE packages ADD COLUMN package_type TEXT NOT NULL DEFAULT 'npm'")
+    if "description" not in pcols:
+        conn.execute("ALTER TABLE packages ADD COLUMN description TEXT")
     conn.commit()
 
 
@@ -248,15 +256,22 @@ def cleanup_expired_codes() -> None:
 
 # ---------- packages ----------
 
-def upsert_package(package: str, latest_version: str | None, added_by: str | None) -> None:
+def upsert_package(
+    package: str,
+    latest_version: str | None,
+    added_by: str | None,
+    package_type: str = "npm",
+    description: str | None = None,
+) -> None:
     conn = get_conn()
     now = time.time()
     conn.execute(
-        "INSERT INTO packages(package, latest_version, last_checked_at, added_at, added_by) "
-        "VALUES(?,?,?,?,?) "
+        "INSERT INTO packages(package, latest_version, last_checked_at, added_at, added_by, package_type, description) "
+        "VALUES(?,?,?,?,?,?,?) "
         "ON CONFLICT(package) DO UPDATE SET latest_version=excluded.latest_version, "
-        "last_checked_at=excluded.last_checked_at",
-        (package, latest_version, now, now, added_by),
+        "last_checked_at=excluded.last_checked_at, "
+        "description=COALESCE(excluded.description, packages.description)",
+        (package, latest_version, now, now, added_by, package_type, description),
     )
     conn.commit()
 
@@ -266,6 +281,16 @@ def update_package_version(package: str, version: str) -> None:
     conn.execute(
         "UPDATE packages SET latest_version=?, last_checked_at=? WHERE package=?",
         (version, time.time(), package),
+    )
+    conn.commit()
+
+
+def set_package_checked(package: str) -> None:
+    """Only bump last_checked_at (no version change)."""
+    conn = get_conn()
+    conn.execute(
+        "UPDATE packages SET last_checked_at=? WHERE package=?",
+        (time.time(), package),
     )
     conn.commit()
 

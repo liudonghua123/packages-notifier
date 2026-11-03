@@ -37,8 +37,13 @@ export const api = {
   health: () => request<{ ok: boolean }>("/api/health"),
 
   listPackages: () =>
-    request<{ packages: { package: string; latest_version: string | null; added_at: number }[] }>(
+    request<{ packages: { package: string; latest_version: string | null; added_at: number; package_type?: string }[] }>(
       "/api/packages"
+    ),
+
+  listEcosystems: () =>
+    request<{ ecosystems: { type: string; label: string; interval_seconds: number }[] }>(
+      "/api/ecosystems"
     ),
 
   packageDetail: (name: string) =>
