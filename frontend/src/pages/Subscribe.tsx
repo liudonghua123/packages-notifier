@@ -11,6 +11,8 @@ export default function Subscribe() {
   const [step, setStep] = useState<1 | 2 | 3>(1);
   const [email, setEmail] = useState("");
   const [pkg, setPkg] = useState("");
+  const [versionMatch, setVersionMatch] = useState("any");
+  const [versionPattern, setVersionPattern] = useState("");
   const [code, setCode] = useState("");
   const [devCode, setDevCode] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
@@ -20,7 +22,12 @@ export default function Subscribe() {
     setError("");
     setBusy(true);
     try {
-      const r = await api.subscribeRequestCode(email.trim().toLowerCase(), pkg.trim());
+      const r = await api.subscribeRequestCode(
+        email.trim().toLowerCase(),
+        pkg.trim(),
+        versionMatch,
+        versionPattern.trim()
+      );
       setDevCode(r.dev_code);
       setStep(2);
     } catch (e) {
@@ -83,11 +90,58 @@ export default function Subscribe() {
                 placeholder={t("subscribe.pkgPlaceholder")}
               />
             </div>
+            <div className="field">
+              <label htmlFor="sub-vmode">{t("subscribe.versionMatch")}</label>
+              <div className="vm-row" role="radiogroup" aria-label={t("subscribe.versionMatch")}>
+                {["any", "equals", "startswith", "regexmatch"].map((m) => (
+                  <button
+                    key={m}
+                    id={m === "any" ? "sub-vmode" : undefined}
+                    type="button"
+                    role="radio"
+                    aria-checked={versionMatch === m}
+                    className={`vm-chip${versionMatch === m ? " on" : ""}`}
+                    onClick={() => {
+                      setVersionMatch(m);
+                      if (m === "any") setVersionPattern("");
+                    }}
+                  >
+                    {m}
+                  </button>
+                ))}
+              </div>
+              {versionMatch !== "any" && (
+                <input
+                  className="mono"
+                  style={{ marginTop: 8 }}
+                  placeholder={
+                    versionMatch === "equals"
+                      ? "1.2.3"
+                      : versionMatch === "startswith"
+                        ? "1.2."
+                        : "^2\\.\\d+\\."
+                  }
+                  value={versionPattern}
+                  onChange={(e) => setVersionPattern(e.target.value)}
+                  aria-label={t("subscribe.versionPattern")}
+                />
+              )}
+              {versionMatch !== "any" && (
+                <p style={{ margin: "6px 0 0", color: "var(--muted)", fontSize: 12 }}>
+                  {t("subscribe.versionHint")}
+                </p>
+              )}
+            </div>
             {error && <p className="error-text" role="alert">{error}</p>}
             <button
               className="btn btn-primary"
               onClick={sendCode}
-              disabled={busy || !email || !pkg}
+              disabled={
+                busy ||
+                !email ||
+                !pkg ||
+                (versionMatch !== "any" && !versionPattern.trim())
+              }
               style={{ width: "100%" }}
             >
               {busy ? t("subscribe.requesting") : t("subscribe.sendCode")}

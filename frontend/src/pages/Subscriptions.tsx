@@ -9,6 +9,8 @@ type Sub = {
   verified: boolean;
   created_at: number;
   last_notified_version: string | null;
+  version_match?: string;
+  version_pattern?: string | null;
 };
 
 const DOT_COLORS = ["var(--accent)", "var(--accent-2)", "var(--accent-3)", "var(--accent-4)", "var(--accent-5)"];
@@ -104,6 +106,15 @@ export default function Subscriptions() {
                   <div style={{ color: "var(--muted)", fontSize: 12 }}>
                     {t("subs.since")} {new Date(s.created_at * 1000).toLocaleDateString()}
                   </div>
+                  {s.version_match && s.version_match !== "any" && (
+                    <div
+                      className="pill violet mono"
+                      style={{ display: "inline-flex", marginTop: 4, fontSize: 11, height: 20 }}
+                      title={t("subscribe.versionHint")}
+                    >
+                      {s.version_match}: {s.version_pattern}
+                    </div>
+                  )}
                 </div>
                 <span className="pkg-ver">{s.last_notified_version || "—"}</span>
                 <span className={`pill ${s.verified ? "positive" : "warning"}`}>

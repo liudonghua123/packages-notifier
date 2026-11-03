@@ -1,8 +1,34 @@
-"""Notification dispatch: on update, email all verified subscribers."""
+"""Notification dispatch: on update, email matching verified subscribers."""
 from __future__ import annotations
+
+import re
 
 from . import db
 from .email_sender import send_email
+
+
+def _version_matches(rule: dict, new_version: str) -> bool:
+    """Check a subscriber's version match rule against the new version.
+
+    Rules: any (default) | equals | startswith | regexmatch
+    Patterns are matched against the full version string, case-insensitively.
+    """
+    mode = (rule.get("version_match") or "any").lower()
+    if mode == "any":
+        return True
+    pattern = rule.get("version_pattern")
+    if not pattern:
+        return True
+    if mode == "equals":
+        return new_version.strip().lower() == pattern.strip().lower()
+    if mode == "startswith":
+        return new_version.strip().lower().startswith(pattern.strip().lower())
+    if mode == "regexmatch":
+        try:
+            return re.search(pattern, new_version, re.IGNORECASE) is not None
+        except re.error:
+            return False
+    return True
 
 
 def update_email_html(pkg: str, old: str, new: str, meta: dict) -> tuple[str, str]:
@@ -32,7 +58,10 @@ def update_email_html(pkg: str, old: str, new: str, meta: dict) -> tuple[str, st
 async def notify_update(pkg: str, old: str, new: str, meta: dict) -> None:
     subscribers = await db.run(db.verified_subscribers, pkg)
     subject, html = update_email_html(pkg, old, new, meta)
-    for email in subscribers:
+    for rule in subscribers:
+        if not _version_matches(rule, new):
+            continue
+        email = rule["email"]
         ok, err = True, None
         try:
             await send_email(email, subject, html)

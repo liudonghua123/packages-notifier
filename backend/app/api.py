@@ -105,11 +105,36 @@ async def package_detail(name: str) -> dict:
     return {"package": meta, "watched": bool(watched)}
 
 
+VALID_VERSION_MATCHES = {"any", "equals", "startswith", "regexmatch"}
+
+
+def _version_rule(body: dict[str, Any]) -> tuple[str, str | None]:
+    """Extract and validate optional version match rule from a request body."""
+    vm = str(body.get("version_match") or "any").strip().lower() or "any"
+    if vm not in VALID_VERSION_MATCHES:
+        raise HTTPException(400, f"invalid version_match, must be one of {sorted(VALID_VERSION_MATCHES)}")
+    vp = str(body.get("version_pattern") or "").strip() or None
+    if vm != "any":
+        if not vp:
+            raise HTTPException(400, "version_pattern is required when version_match is set")
+        if vm == "regexmatch":
+            try:
+                re.compile(vp)
+            except re.error as exc:
+                raise HTTPException(400, f"invalid version_pattern regex: {exc}")
+        if len(vp) > 200:
+            raise HTTPException(400, "version_pattern too long")
+    else:
+        vp = None
+    return vm, vp
+
+
 @router.post("/api/subscribe/request-code")
 async def subscribe_request_code(body: dict[str, Any]) -> dict:
     """Step 1 of subscribe: email + package -> send verification code."""
     email = str(body.get("email", "")).strip().lower()
     package = str(body.get("package", "")).strip()
+    version_match, version_pattern = _version_rule(body)
     await _validate_email(email)
     package = await _validate_package(package)
 
@@ -127,7 +152,12 @@ async def subscribe_request_code(body: dict[str, Any]) -> dict:
     code = _gen_code()
     await db.run(
         db.create_code, email, "subscribe", code,
-        {"package": package, "latest": meta.get("latest")},
+        {
+            "package": package,
+            "latest": meta.get("latest"),
+            "version_match": version_match,
+            "version_pattern": version_pattern,
+        },
         int(config.verification.get("code_ttl_seconds", 600)),
     )
     subject, html = verification_email_html(code, "subscribe", package, _ttl_minutes())
@@ -152,7 +182,9 @@ async def subscribe_verify(body: dict[str, Any]) -> dict:
     if pkg_from_code != package:
         raise HTTPException(400, "code does not match this package")
 
-    await db.run(db.add_subscription, email, package)
+    version_match = payload.get("version_match") or "any"
+    version_pattern = payload.get("version_pattern")
+    await db.run(db.add_subscription, email, package, version_match, version_pattern)
     await db.run(db.mark_verified, email, package)
     # make sure the package is watched
     meta = None
@@ -223,6 +255,8 @@ async def my_subscriptions(email: str) -> dict:
                 "verified": bool(s["verified"]),
                 "created_at": s["created_at"],
                 "last_notified_version": s["last_notified_version"],
+                "version_match": s.get("version_match") or "any",
+                "version_pattern": s.get("version_pattern"),
             }
             for s in subs
         ],

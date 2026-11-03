@@ -58,10 +58,24 @@ export const api = {
       watched: boolean;
     }>(`/api/packages/${encodeURIComponent(name)}`),
 
-  subscribeRequestCode: (email: string, pkg: string) =>
+  subscribeRequestCode: (
+    email: string,
+    pkg: string,
+    versionMatch?: string,
+    versionPattern?: string
+  ) =>
     request<{ ok: boolean; latest: string; dev_code: string | null }>(
       "/api/subscribe/request-code",
-      { method: "POST", body: JSON.stringify({ email, package: pkg }) }
+      {
+        method: "POST",
+        body: JSON.stringify({
+          email,
+          package: pkg,
+          ...(versionMatch && versionMatch !== "any"
+            ? { version_match: versionMatch, version_pattern: versionPattern }
+            : {}),
+        }),
+      }
     ),
 
   subscribeVerify: (email: string, pkg: string, code: string) =>
@@ -90,6 +104,8 @@ export const api = {
         verified: boolean;
         created_at: number;
         last_notified_version: string | null;
+        version_match: string;
+        version_pattern: string | null;
       }[];
     }>(`/api/subscriptions?email=${encodeURIComponent(email)}`),
 

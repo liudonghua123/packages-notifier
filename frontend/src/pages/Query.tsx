@@ -51,9 +51,9 @@ export default function Query() {
             e.preventDefault();
             search();
           }}
-          style={{ marginBottom: 8, gap: 12 }}
+          style={{ marginBottom: 8, gap: 12, maxWidth: 520 }}
         >
-          <div className="grow">
+          <div className="grow" style={{ minWidth: 0 }}>
             <PackageInput
               id="query-pkg"
               value={name}
@@ -62,7 +62,7 @@ export default function Query() {
               placeholder={t("query.placeholder")}
             />
           </div>
-          <button className="btn btn-primary" type="submit" disabled={busy}>
+          <button className="btn btn-primary" type="submit" disabled={busy || !name.trim()}>
             {t("query.search")}
           </button>
         </form>

@@ -379,6 +379,41 @@ code, .mono {
 
 .btn:active { transform: scale(0.98); }
 
+.btn:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+  filter: saturate(0.4);
+  transform: none;
+}
+
+/* version match chips (subscribe page) */
+.vm-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.vm-chip {
+  border: 1px solid var(--border);
+  background: var(--raised);
+  color: var(--muted);
+  border-radius: 999px;
+  padding: 6px 14px;
+  font-family: var(--mono);
+  font-size: 12px;
+  font-weight: 600;
+  transition: all 0.35s var(--ease-fluid);
+}
+
+.vm-chip:hover { color: var(--text); }
+
+.vm-chip.on {
+  background: linear-gradient(120deg, var(--accent), var(--accent-2));
+  border-color: transparent;
+  color: #fff;
+  box-shadow: 0 4px 14px color-mix(in srgb, var(--accent) 35%, transparent);
+}
+
 .btn-primary {
   background: linear-gradient(120deg, var(--accent), var(--accent-2));
   color: #fff;

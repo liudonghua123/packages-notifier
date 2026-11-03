@@ -73,7 +73,7 @@ The backend serves the built frontend automatically if `frontend/dist` exists.
 | GET | `/api/health` | Health check |
 | GET | `/api/packages` | Watched packages / 关注中的包 |
 | GET | `/api/packages/{name}` | Live npm metadata / 实时包元数据 |
-| POST | `/api/subscribe/request-code` | `{email, package}` → send code / 发验证码 |
+| POST | `/api/subscribe/request-code` | `{email, package, version_match?, version_pattern?}` → send code / 发验证码 |
 | POST | `/api/subscribe/verify` | `{email, package, code}` → subscribe / 验证并订阅 |
 | POST | `/api/unsubscribe/request-code` | `{email, package}` → send code |
 | POST | `/api/unsubscribe/verify` | `{email, package, code}` → unsubscribe |
@@ -82,7 +82,18 @@ The backend serves the built frontend automatically if `frontend/dist` exists.
 
 ### MCP tools / MCP 工具
 
-`health` · `list_watched_packages` · `get_package_info` · `request_subscription_code` · `verify_subscription` · `request_unsubscribe_code` · `verify_unsubscribe` · `list_subscriptions` · `check_updates_now`
+`health` · `list_watched_packages` · `get_package_info` · `request_subscription_code` · `verify_subscription` · `request_unsubscribe_code` · `verify_unsubscribe` · `list_subscriptions` · `search_npm_packages` · `check_updates_now`
+
+#### Version filtering / 版本过滤（可选）
+
+Subscribers can optionally restrict notifications to matching versions by passing `version_match` + `version_pattern` when subscribing:
+
+- `any` (default) — notify on every update / 每次更新都通知
+- `equals` — notify only when the new version equals the pattern / 精确匹配
+- `startswith` — prefix match, e.g. `1.2.` / 前缀匹配
+- `regexmatch` — regex search against the version string, e.g. `^2\.\d+\.` / 正则匹配
+
+订阅时可附加 `version_match` + `version_pattern` 过滤通知的版本：`any`（默认全部）、`equals`（精确等于）、`startswith`（前缀匹配）、`regexmatch`（正则匹配，不区分大小写）。
 
 ```json
 {

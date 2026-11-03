@@ -13,7 +13,7 @@ from .config import config
 
 def _connect() -> sqlite3.Connection:
     Path(config.db_path).parent.mkdir(parents=True, exist_ok=True)
-    conn = sqlite3.connect(config.db_path)
+    conn = sqlite3.connect(config.db_path, check_same_thread=False)
     conn.row_factory = sqlite3.Row
     conn.execute("PRAGMA journal_mode=WAL")
     return conn
@@ -29,6 +29,8 @@ def _init_schema(conn: sqlite3.Connection) -> None:
             created_at REAL NOT NULL,
             verified INTEGER NOT NULL DEFAULT 0,
             last_notified_version TEXT,
+            version_match TEXT NOT NULL DEFAULT 'any',
+            version_pattern TEXT,
             UNIQUE(email, package)
         );
         CREATE TABLE IF NOT EXISTS verification_codes (
@@ -68,6 +70,14 @@ def _init_schema(conn: sqlite3.Connection) -> None:
         CREATE INDEX IF NOT EXISTS idx_codes_email ON verification_codes(email);
         """
     )
+    # migrate pre-existing databases: add version match columns if missing
+    cols = {r["name"] for r in conn.execute("PRAGMA table_info(subscriptions)").fetchall()}
+    if "version_match" not in cols:
+        conn.execute(
+            "ALTER TABLE subscriptions ADD COLUMN version_match TEXT NOT NULL DEFAULT 'any'"
+        )
+    if "version_pattern" not in cols:
+        conn.execute("ALTER TABLE subscriptions ADD COLUMN version_pattern TEXT")
     conn.commit()
 
 
@@ -95,13 +105,20 @@ def run(fn, *args, **kwargs):
 
 # ---------- subscriptions ----------
 
-def add_subscription(email: str, package: str) -> dict[str, Any]:
+def add_subscription(
+    email: str,
+    package: str,
+    version_match: str = "any",
+    version_pattern: str | None = None,
+) -> dict[str, Any]:
     conn = get_conn()
     now = time.time()
     cur = conn.execute(
-        "INSERT INTO subscriptions(email, package, created_at, verified) VALUES(?,?,?,0) "
-        "ON CONFLICT(email, package) DO UPDATE SET created_at=excluded.created_at",
-        (email, package, now),
+        "INSERT INTO subscriptions(email, package, created_at, verified, version_match, version_pattern) "
+        "VALUES(?,?,?,0,?,?) "
+        "ON CONFLICT(email, package) DO UPDATE SET created_at=excluded.created_at, "
+        "version_match=excluded.version_match, version_pattern=excluded.version_pattern",
+        (email, package, now, version_match, version_pattern),
     )
     conn.commit()
     row = conn.execute(
@@ -149,12 +166,22 @@ def verified_packages() -> list[str]:
     return sorted(r["package"] for r in rows)
 
 
-def verified_subscribers(package: str) -> list[str]:
+def verified_subscribers(package: str) -> list[dict]:
+    """Verified subscribers of a package with their version match rules."""
     conn = get_conn()
     rows = conn.execute(
-        "SELECT DISTINCT email FROM subscriptions WHERE package=? AND verified=1", (package,)
+        "SELECT email, version_match, version_pattern FROM subscriptions "
+        "WHERE package=? AND verified=1",
+        (package,),
     ).fetchall()
-    return [r["email"] for r in rows]
+    return [
+        {
+            "email": r["email"],
+            "version_match": r["version_match"] or "any",
+            "version_pattern": r["version_pattern"],
+        }
+        for r in rows
+    ]
 
 
 # ---------- verification codes ----------

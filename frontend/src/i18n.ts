@@ -53,6 +53,9 @@ const en = {
     verifying: "Verifying…",
     devCode: "Dev mode code (no SMTP configured):",
     back: "Back",
+    versionMatch: "Notify on version (optional)",
+    versionPattern: "Version pattern",
+    versionHint: "Only versions matching this will trigger an email.",
   },
   unsubscribe: {
     title: "Unsubscribe",
@@ -178,6 +181,9 @@ const zh = {
     verifying: "验证中…",
     devCode: "开发模式验证码（未配置 SMTP）：",
     back: "返回",
+    versionMatch: "通知版本范围（可选）",
+    versionPattern: "版本模式",
+    versionHint: "仅当新版本匹配此模式时才发送邮件通知。",
   },
   unsubscribe: {
     title: "取消订阅",

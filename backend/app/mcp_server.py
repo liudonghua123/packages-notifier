@@ -40,10 +40,24 @@ async def get_package_info(package: str) -> dict[str, Any]:
 
 
 @mcp.tool
-async def request_subscription_code(email: str, package: str) -> dict[str, Any]:
-    """Step 1 of subscribing: request a verification code sent to the email for watching a package."""
+async def request_subscription_code(
+    email: str,
+    package: str,
+    version_match: str = "any",
+    version_pattern: str = "",
+) -> dict[str, Any]:
+    """Step 1 of subscribing: request a verification code sent to the email for watching a package.
+
+    Optional version filtering: version_match is one of "any" (default),
+    "equals", "startswith", "regexmatch"; version_pattern is the value
+    compared against the new version string (required unless "any").
+    """
     from .api import subscribe_request_code
-    return await subscribe_request_code({"email": email, "package": package})
+    body = {"email": email, "package": package}
+    if version_match != "any":
+        body["version_match"] = version_match
+        body["version_pattern"] = version_pattern
+    return await subscribe_request_code(body)
 
 
 @mcp.tool
