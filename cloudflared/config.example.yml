@@ -1,0 +1,15 @@
+# cloudflared tunnel config for packages-notifier
+# 1. cloudflared tunnel create packages-notifier
+# 2. cloudflared tunnel route dns packages-notifier notifier.yourdomain.com
+# 3. copy this file to ~/.cloudflared/config.yml, adjust tunnel id and hostname
+# 4. cloudflared service install   (or run: cloudflared tunnel run packages-notifier)
+
+tunnel: <YOUR-TUNNEL-UUID>
+credentials-file: C:\Users\admin\.cloudflared\<YOUR-TUNNEL-UUID>.json
+
+ingress:
+  # public hostname -> local app (FastAPI serves API + /mcp + frontend)
+  - hostname: notifier.yourdomain.com
+    service: http://localhost:8800
+  # catch-all: required last rule
+  - service: http_status:404

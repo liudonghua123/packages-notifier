@@ -1,0 +1,29 @@
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+
+# data & secrets
+backend/data/
+*.db
+*.db-journal
+*.db-wal
+*.db-shm
+
+# Node
+node_modules/
+dist/
+*.local
+
+# env
+.env
+.env.*
+
+# editor
+.vscode/
+.idea/
+.DS_Store
+
+# taste-skill working files
+.taste-skill/
