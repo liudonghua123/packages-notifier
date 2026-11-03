@@ -32,7 +32,7 @@ export default function App() {
 
       <header className="topbar">
         <NavLink to="/" className="brand">
-          <span className="brand-orb" aria-hidden="true" />
+          <Logo />
           packages-notifier
         </NavLink>
         <nav className="topnav" aria-label="primary">
@@ -97,8 +97,34 @@ function Fall() {
   );
 }
 
-function BottomIcon({ name }: { name: string }) {
-  const common = { width: 20, height: 20, viewBox: "0 0 24 24", fill: "none", stroke: "currentColor", strokeWidth: 1.8, strokeLinecap: "round" as const, strokeLinejoin: "round" as const };
+/* Animated logo: a package box emitting notification pulse rings.
+   Gradient stroke follows the brand spectrum; box gently bobs,
+   rings ripple outward, dot blinks like a live notification. */
+function Logo() {
+  return (
+    <svg className="logo" width="26" height="26" viewBox="0 0 26 26" fill="none" aria-hidden="true">
+      <defs>
+        <linearGradient id="lg-stroke" x1="0" y1="0" x2="26" y2="26" gradientUnits="userSpaceOnUse">
+          <stop offset="0" stopColor="#7c6cff" />
+          <stop offset="0.5" stopColor="#ff6c9d" />
+          <stop offset="1" stopColor="#ffb84d" />
+        </linearGradient>
+      </defs>
+      {/* ripple rings */}
+      <circle className="logo-ring r1" cx="19" cy="7" r="4" stroke="url(#lg-stroke)" strokeWidth="1.4" />
+      <circle className="logo-ring r2" cx="19" cy="7" r="4" stroke="url(#lg-stroke)" strokeWidth="1.4" />
+      {/* notification dot */}
+      <circle className="logo-dot" cx="19" cy="7" r="2.2" fill="#ff6c9d" />
+      {/* package box */}
+      <g className="logo-box">
+        <path d="M4 9.5 11 6l7 3.5v7L11 20l-7-3.5v-7Z" stroke="url(#lg-stroke)" strokeWidth="1.8" strokeLinejoin="round" />
+        <path d="M4 9.5 11 13l7-3.5M11 13v7" stroke="url(#lg-stroke)" strokeWidth="1.8" strokeLinejoin="round" />
+      </g>
+    </svg>
+  );
+}
+
+function BottomIcon({ name }: { name: string }) {  const common = { width: 20, height: 20, viewBox: "0 0 24 24", fill: "none", stroke: "currentColor", strokeWidth: 1.8, strokeLinecap: "round" as const, strokeLinejoin: "round" as const };
   switch (name) {
     case "/":
       return <svg {...common}><path d="M3 10.5 12 3l9 7.5" /><path d="M5 9.5V21h14V9.5" /></svg>;
