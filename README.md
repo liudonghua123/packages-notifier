@@ -2,9 +2,9 @@
 
 # packages-notifier
 
-**Watch npm packages. Get emailed when they update.**
+**Watch packages across npm, Python, Rust, Go, Java, Ruby and .NET. Get emailed when they update.**
 
-关注 npm 包，版本更新即刻邮件通知。
+跨生态关注包更新：npm / PyPI / crates.io / Go / Maven / RubyGems / NuGet，版本更新即刻邮件通知。
 
 FastAPI + fastmcp backend · React + Motion frontend · single port · MCP server at `/mcp`
 
@@ -17,6 +17,8 @@ FastAPI + fastmcp backend · React + Motion frontend · single port · MCP serve
 **English**
 
 - 🔔 **Update alerts** — poll the npm registry (`registry.npmjs.org`) for every watched package; when `dist-tags.latest` moves, all verified subscribers get an email.
+- 🌍 **Multi-ecosystem** — watch packages from **npm, PyPI (Python), crates.io (Rust), Go modules, Maven Central (Java), RubyGems (Ruby) and NuGet (.NET)**. Each ecosystem has its own configurable check interval; the first observation records the baseline version (no email), later changes notify.
+- 🎯 **Version filtering** — optionally restrict notifications with `equals`, `startswith` or `regexmatch` version rules.
 - ✉️ **Email-verified flows** — subscribe, unsubscribe and package watching all require a 6-digit email verification code. No accounts, no passwords.
 - 🔌 **MCP server** — the full API is exposed as MCP tools on the same port at `/mcp` (streamable HTTP), so AI agents can subscribe and query on your behalf.
 - 🛠 **Admin console** — `/admin` page (Bearer-token protected) to configure SMTP, polling interval, registry URLs, verification TTL and rate limits. Changes apply immediately and persist to `data/config.json`.
@@ -26,6 +28,8 @@ FastAPI + fastmcp backend · React + Motion frontend · single port · MCP serve
 **中文**
 
 - 🔔 **更新通知** — 定期轮询 npm registry；`dist-tags.latest` 变化即邮件通知所有已验证订阅者。
+- 🌍 **多生态支持** — 支持 **npm、PyPI（Python）、crates.io（Rust）、Go modules、Maven Central（Java）、RubyGems（Ruby）、NuGet（.NET）**。每种生态可单独配置检测间隔；首次检测记录基线版本（不发邮件），之后的版本变化才通知。
+- 🎯 **版本过滤** — 订阅时可选 `equals` / `startswith` / `regexmatch` 版本规则，仅匹配的版本才通知。
 - ✉️ **邮箱验证** — 订阅、取消订阅、关注新包均需 6 位邮箱验证码，无需注册账号。
 - 🔌 **MCP 服务** — 全部 API 以 MCP tools 形式挂载在同端口 `/mcp`（streamable HTTP），AI 智能体可代你订阅与查询。
 - 🛠 **管理后台** — `/admin` 页面（Bearer Token 保护），可配置 SMTP、轮询间隔、registry 地址、验证码有效期与频控，改动即时生效并持久化。
@@ -83,6 +87,20 @@ The backend serves the built frontend automatically if `frontend/dist` exists.
 ### MCP tools / MCP 工具
 
 `health` · `list_watched_packages` · `get_package_info` · `request_subscription_code` · `verify_subscription` · `request_unsubscribe_code` · `verify_unsubscribe` · `list_subscriptions` · `search_npm_packages` · `check_updates_now`
+
+#### Ecosystem endpoints / 各生态数据源
+
+| Ecosystem | API used / 使用接口 |
+|---|---|
+| npm | `registry.npmjs.org/{pkg}` dist-tags |
+| PyPI | `pypi.org/pypi/{pkg}/json` |
+| crates.io | `crates.io/api/v1/crates/{pkg}` (`max_version`) |
+| Go | `goproxy.cn/{module}/@latest`（可配置回 `proxy.golang.org`） |
+| RubyGems | `rubygems.org/api/v1/gems/{pkg}.json` |
+| Maven Central | `search.maven.org/solrsearch/select` (`g:a` 坐标) |
+| NuGet | `api.nuget.org/v3-flatcontainer/{pkg}/index.json` |
+
+Per-ecosystem check intervals are configurable in `/admin`（各生态检测间隔可在管理后台配置）。
 
 #### Version filtering / 版本过滤（可选）
 
