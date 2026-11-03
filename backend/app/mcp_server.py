@@ -75,6 +75,13 @@ async def list_subscriptions(email: str) -> dict[str, Any]:
 
 
 @mcp.tool
+async def search_npm_packages(query: str) -> dict[str, Any]:
+    """Search npm packages by keyword (official registry search API)."""
+    from .api import search_packages
+    return await search_packages(query)
+
+
+@mcp.tool
 async def check_updates_now() -> dict[str, Any]:
     """Trigger an immediate update check across all watched packages and email subscribers of any new versions."""
     from .registry import Poller

@@ -1,9 +1,11 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Link } from "react-router-dom";
 import { motion } from "motion/react";
 import { api } from "../api";
 import { Enter, Stagger, StaggerItem } from "../motion-bits";
+
+const RAINBOW = ["var(--accent)", "var(--accent-2)", "var(--accent-3)", "var(--accent-4)", "var(--accent-5)"];
 
 export default function Home() {
   const { t } = useTranslation();
@@ -20,16 +22,14 @@ export default function Home() {
     <div>
       <Enter>
         <h1 className="h1">
-          {t("home.title")}
+          <span className="grad">{t("home.title")}</span>
           <br />
-          <span style={{ color: "var(--accent)" }}>{t("home.titleAccent")}</span>
+          <span className="rainbow">{t("home.titleAccent")}</span>
         </h1>
-        <p className="sub" style={{ maxWidth: 560 }}>
-          {t("home.sub")}
-        </p>
+        <p className="sub">{t("home.sub")}</p>
       </Enter>
 
-      <Stagger className="row" style={{ flexWrap: "wrap", gap: 12, marginBottom: 32 }}>
+      <Stagger className="row" style={{ flexWrap: "wrap", gap: 16, marginBottom: 48 }}>
         <StaggerItem>
           <Link to="/subscribe" className="btn btn-primary" style={{ textDecoration: "none" }}>
             {t("home.cta")} →
@@ -42,24 +42,43 @@ export default function Home() {
         </StaggerItem>
       </Stagger>
 
+      <TaglineReveal
+        words={[
+          { text: "npm", rainbow: true },
+          { text: "registry", rainbow: true },
+          { text: "changes" },
+          { text: "→" },
+          { text: "your", rainbow: true },
+          { text: "inbox.", rainbow: true },
+        ]}
+        zhWords={[
+          { text: "registry", rainbow: true },
+          { text: "一有风吹草动，" },
+          { text: "邮件", rainbow: true },
+          { text: "立刻到达。", rainbow: true },
+        ]}
+      />
+
       <Stagger
         style={{
           display: "grid",
-          gridTemplateColumns: "repeat(auto-fit, minmax(140px, 1fr))",
-          gap: 12,
+          gridTemplateColumns: "repeat(auto-fit, minmax(160px, 1fr))",
+          gap: 16,
+          marginTop: 48,
         }}
       >
-        <StatCard value={stats.pkgs} label={t("home.stats.watched")} delay={0} />
-        <StatCard value={stats.subs} label={t("home.stats.subscribers")} delay={0.08} />
-        <StatCard value={stats.notified} label={t("home.stats.notified")} delay={0.16} />
+        <StatCard value={stats.pkgs} label={t("home.stats.watched")} color="var(--accent)" delay={0} />
+        <StatCard value={stats.subs} label={t("home.stats.subscribers")} color="var(--accent-2)" delay={0.08} />
+        <StatCard value={stats.notified} label={t("home.stats.notified")} color="var(--accent-3)" delay={0.16} />
       </Stagger>
 
       <Enter delay={0.3}>
-        <div className="card" style={{ marginTop: 24 }}>
-          <p className="section-title" style={{ fontSize: 14, marginBottom: 12 }}>
+        <div className="card" style={{ marginTop: 32 }}>
+          <p className="section-title" style={{ fontSize: 14, marginBottom: 8 }}>
             {t("home.example")}
           </p>
-          <div className="pkg-row" style={{ borderBottom: "none", minHeight: 44 }}>
+          <div className="pkg-row" style={{ minHeight: 48 }}>
+            <span className="brand-orb" style={{ width: 12, height: 12 }} />
             <span className="pkg-name">@cloudflare/vite-plugin</span>
             <span className="grow" />
             <span className="pill positive mono">v1.67.0</span>
@@ -68,12 +87,7 @@ export default function Home() {
       </Enter>
 
       <Enter delay={0.4}>
-        <p
-          className="sub"
-          style={{ marginTop: 32, fontSize: 12, display: "flex", gap: 16, flexWrap: "wrap" }}
-        >
-          <span>{t("footer.made")}</span>
-          <span>·</span>
+        <p className="sub" style={{ marginTop: 48, fontSize: 14, display: "flex", gap: 16, flexWrap: "wrap" }}>
           <span>{t("footer.mcp")}</span>
           <span>·</span>
           <a href="https://replicate.npmjs.com/registry/_changes" target="_blank" rel="noreferrer">
@@ -85,26 +99,72 @@ export default function Home() {
   );
 }
 
-function StatCard({ value, label, delay }: { value: number; label: string; delay: number }) {
+/** B11 tagline reveal: words activate one by one as they scroll into view. */
+function TaglineReveal({
+  words,
+  zhWords,
+}: {
+  words: { text: string; rainbow?: boolean }[];
+  zhWords: { text: string; rainbow?: boolean }[];
+}) {
+  const { i18n } = useTranslation();
+  const ref = useRef<HTMLParagraphElement>(null);
+  const list = i18n.language.startsWith("zh") ? zhWords : words;
+
+  useEffect(() => {
+    const el = ref.current;
+    if (!el) return;
+    const spans = el.querySelectorAll<HTMLSpanElement>(".w");
+    const io = new IntersectionObserver(
+      (entries) => {
+        if (entries[0].isIntersecting) {
+          spans.forEach((s, i) => {
+            setTimeout(() => s.classList.add("on"), i * 110);
+          });
+          io.disconnect();
+        }
+      },
+      { threshold: 0.35 }
+    );
+    io.observe(el);
+    return () => io.disconnect();
+  }, [list]);
+
+  return (
+    <p className="tagline" ref={ref} style={{ margin: "64px 0" }}>
+      {list.map((w, i) => (
+        <span
+          key={i}
+          className={`w${w.rainbow ? " rainbow" : ""}`}
+          style={w.rainbow ? ({ "--w": RAINBOW[i % RAINBOW.length] } as React.CSSProperties) : undefined}
+        >
+          {w.text}{" "}
+        </span>
+      ))}
+    </p>
+  );
+}
+
+function StatCard({ value, label, color, delay }: { value: number; label: string; color: string; delay: number }) {
   return (
     <StaggerItem>
       <motion.div
         className="card"
-        style={{ padding: 16 }}
-        whileHover={{ y: -3 }}
-        transition={{ type: "spring", stiffness: 400, damping: 28 }}
+        style={{ padding: 24, borderTop: `3px solid ${color}` }}
+        whileHover={{ y: -6 }}
+        transition={{ type: "spring", stiffness: 300, damping: 22 }}
       >
         <motion.div
-          className="mono"
-          style={{ fontSize: 28, fontWeight: 700, letterSpacing: "-0.02em" }}
+          className="mono num"
+          style={{ fontSize: 32, fontWeight: 800, letterSpacing: "-0.02em", color }}
           key={value}
           initial={{ opacity: 0, y: 8 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: delay + 0.2, duration: 0.4 }}
+          transition={{ delay: delay + 0.2, duration: 0.5, ease: [0.32, 0.72, 0, 1] }}
         >
           {value}
         </motion.div>
-        <div style={{ color: "var(--muted)", fontSize: 12 }}>{label}</div>
+        <div style={{ color: "var(--muted)", fontSize: 14, fontWeight: 600 }}>{label}</div>
       </motion.div>
     </StaggerItem>
   );

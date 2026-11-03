@@ -54,9 +54,6 @@ export default function Admin() {
   const pollNow = async () => {
     setBusy(true);
     try {
-      // via admin: trigger check through poller endpoint is public /api/poller/status only,
-      // so run a manual check through the MCP tool endpoint equivalent: PUT not needed;
-      // simplest: call /api/poller/status then reload after a beat.
       await new Promise((r) => setTimeout(r, 400));
       api.listPackages().then((d) => setPkgs(d.packages)).catch(() => {});
       api.pollerStatus().then(setPoller).catch(() => {});
@@ -67,9 +64,11 @@ export default function Admin() {
 
   if (!authed) {
     return (
-      <div style={{ maxWidth: 400, margin: "0 auto" }}>
+      <div style={{ maxWidth: 440, margin: "0 auto" }}>
         <Enter>
-          <h1 className="h1">{t("admin.title")}</h1>
+          <h1 className="h1" style={{ fontSize: "clamp(30px, 6vw, 48px)" }}>
+            <span className="grad">{t("admin.title")}</span>
+          </h1>
           <p className="sub">{t("admin.tokenHint")}</p>
           <div className="card">
             <div className="field">
@@ -84,7 +83,7 @@ export default function Admin() {
               />
             </div>
             {error && <p className="error-text" role="alert">{error}</p>}
-            <button className="btn btn-primary" style={{ width: "100%", height: 42 }} onClick={() => loadAll(token).catch(() => setError(t("admin.wrongToken")))}>
+            <button className="btn btn-primary" style={{ width: "100%" }} onClick={() => loadAll(token).catch(() => setError(t("admin.wrongToken")))}>
               {t("admin.login")}
             </button>
           </div>
@@ -106,11 +105,13 @@ export default function Admin() {
   };
 
   return (
-    <div style={{ maxWidth: 760, margin: "0 auto" }}>
+    <div style={{ maxWidth: 800, margin: "0 auto" }}>
       <Enter>
-        <div className="row between" style={{ flexWrap: "wrap", gap: 8 }}>
+        <div className="row between" style={{ flexWrap: "wrap", gap: 16 }}>
           <div>
-            <h1 className="h1" style={{ marginBottom: 0 }}>{t("admin.title")}</h1>
+            <h1 className="h1" style={{ fontSize: "clamp(30px, 6vw, 48px)", marginBottom: 0 }}>
+              <span className="grad">{t("admin.title")}</span>
+            </h1>
             <p className="sub" style={{ marginBottom: 0 }}>{t("admin.sub")}</p>
           </div>
           <motion.button className="btn btn-primary" onClick={save} disabled={busy} whileTap={{ scale: 0.96 }}>
@@ -119,15 +120,15 @@ export default function Admin() {
         </div>
       </Enter>
 
-      {error && <p className="error-text" role="alert" style={{ marginTop: 12 }}>{error}</p>}
+      {error && <p className="error-text" role="alert" style={{ marginTop: 16 }}>{error}</p>}
 
       <Enter delay={0.1}>
-        <Section title={t("admin.poll")}>
+        <Section title={t("admin.poll")} color="var(--accent)">
           <Row label={t("admin.interval")}>
-            <input type="number" min={30} value={cfg.poll.interval_seconds} onChange={(e) => set(["poll", "interval_seconds"], Number(e.target.value))} style={{ width: 120 }} />
+            <input type="number" min={30} value={cfg.poll.interval_seconds} onChange={(e) => set(["poll", "interval_seconds"], Number(e.target.value))} style={{ width: 140 }} />
           </Row>
           {poller && (
-            <p className="hint" style={{ color: "var(--muted)", fontSize: 12, margin: 0 }}>
+            <p style={{ color: "var(--muted)", fontSize: 12, margin: 0 }}>
               {poller.running ? t("admin.pollRunning", { n: poller.interval_seconds }) : ""}
               {poller.last_run ? ` · ${t("admin.lastRun")}: ${new Date(poller.last_run * 1000).toLocaleTimeString()}` : ""}
             </p>
@@ -136,8 +137,8 @@ export default function Admin() {
       </Enter>
 
       <Enter delay={0.15}>
-        <Section title={t("admin.smtp")}>
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))", gap: "12px 16px" }}>
+        <Section title={t("admin.smtp")} color="var(--accent-2)">
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))", gap: "16px 24px" }}>
             <Field label={t("admin.host")} value={cfg.smtp.host} onChange={(v: string) => set(["smtp", "host"], v)} mono />
             <Field label={t("admin.port")} value={cfg.smtp.port} onChange={(v: string) => set(["smtp", "port"], Number(v))} type="number" />
             <Field label={t("admin.user")} value={cfg.smtp.username} onChange={(v: string) => set(["smtp", "username"], v)} />
@@ -152,8 +153,8 @@ export default function Admin() {
       </Enter>
 
       <Enter delay={0.2}>
-        <Section title={t("admin.verification")}>
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))", gap: "12px 16px" }}>
+        <Section title={t("admin.verification")} color="var(--accent-3)">
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))", gap: "16px 24px" }}>
             <Field label={t("admin.codeTtl")} value={cfg.verification.code_ttl_seconds} onChange={(v: string) => set(["verification", "code_ttl_seconds"], Number(v))} type="number" />
             <Field label={t("admin.codeLen")} value={cfg.verification.code_length} onChange={(v: string) => set(["verification", "code_length"], Number(v))} type="number" />
             <Field label={t("admin.rateLimit")} value={cfg.rate_limit.code_request_per_email_per_hour} onChange={(v: string) => set(["rate_limit", "code_request_per_email_per_hour"], Number(v))} type="number" />
@@ -169,20 +170,20 @@ export default function Admin() {
       </Enter>
 
       <Enter delay={0.25}>
-        <Section title={t("admin.watchTable")}>
+        <Section title={t("admin.watchTable")} color="var(--accent-4)">
           <div className="table-head">
             <span>{t("admin.watchPkg")}</span>
             <span>{t("admin.watchVer")}</span>
             <span>{t("admin.watchAdded")}</span>
           </div>
           {pkgs.map((p) => (
-            <div key={p.package} className="pkg-row" style={{ minHeight: 40 }}>
+            <div key={p.package} className="pkg-row" style={{ minHeight: 44 }}>
               <span className="pkg-name grow">{p.package}</span>
               <span className="pkg-ver">{p.latest_version || "—"}</span>
-              <span className="pkg-ver" style={{ fontSize: 11 }}>{new Date(p.added_at * 1000).toLocaleDateString()}</span>
+              <span className="pkg-ver" style={{ fontSize: 12 }}>{new Date(p.added_at * 1000).toLocaleDateString()}</span>
             </div>
           ))}
-          <button className="btn btn-ghost" style={{ marginTop: 12 }} onClick={pollNow} disabled={busy}>
+          <button className="btn btn-ghost" style={{ marginTop: 16 }} onClick={pollNow} disabled={busy}>
             ↻ {t("admin.pollNow")}
           </button>
         </Section>
@@ -191,19 +192,19 @@ export default function Admin() {
   );
 }
 
-function Section({ title, children }: { title: string; children: React.ReactNode }) {
+function Section({ title, children, color }: { title: string; children: React.ReactNode; color: string }) {
   return (
-    <div style={{ marginTop: 24 }}>
-      <h2 className="section-title">{title}</h2>
-      <div className="card">{children}</div>
+    <div style={{ marginTop: 32 }}>
+      <h2 className="section-title" style={{ color }}>{title}</h2>
+      <div className="card" style={{ borderTop: `3px solid ${color}` }}>{children}</div>
     </div>
   );
 }
 
 function Row({ label, children }: { label: string; children: React.ReactNode }) {
   return (
-    <div className="row between" style={{ margin: "12px 0" }}>
-      <span style={{ fontSize: 13, fontWeight: 500 }}>{label}</span>
+    <div className="row between" style={{ margin: "16px 0", flexWrap: "wrap", gap: 12 }}>
+      <span style={{ fontSize: 14, fontWeight: 700 }}>{label}</span>
       {children}
     </div>
   );
@@ -224,8 +225,8 @@ function Field({
 }) {
   return (
     <div className="field" style={{ marginBottom: 0 }}>
-      <label style={{ fontSize: 12, color: "var(--muted)" }}>{label}</label>
-      <input type={type} className={mono ? "mono" : ""} value={value ?? ""} onChange={(e) => onChange(e.target.value)} style={{ height: 38 }} />
+      <label style={{ fontSize: 12, color: "var(--muted)", fontWeight: 700 }}>{label}</label>
+      <input type={type} className={mono ? "mono" : ""} value={value ?? ""} onChange={(e) => onChange(e.target.value)} />
     </div>
   );
 }
@@ -237,13 +238,14 @@ function Toggle({ checked, onChange }: { checked: boolean; onChange: (v: boolean
       aria-checked={checked}
       onClick={() => onChange(!checked)}
       style={{
-        width: 40,
-        height: 22,
+        width: 48,
+        height: 28,
         borderRadius: 999,
         border: "none",
-        background: checked ? "var(--accent)" : "var(--control)",
+        background: checked ? "linear-gradient(120deg, var(--accent), var(--accent-2))" : "var(--overlay)",
         position: "relative",
-        transition: "background 0.2s ease",
+        transition: "background 0.5s cubic-bezier(0.32,0.72,0,1)",
+        flex: "none",
       }}
     >
       <motion.span
@@ -251,12 +253,13 @@ function Toggle({ checked, onChange }: { checked: boolean; onChange: (v: boolean
         transition={{ type: "spring", stiffness: 500, damping: 32 }}
         style={{
           position: "absolute",
-          top: 3,
-          left: checked ? 21 : 3,
-          width: 16,
-          height: 16,
+          top: 4,
+          left: checked ? 24 : 4,
+          width: 20,
+          height: 20,
           borderRadius: "50%",
           background: "#fff",
+          boxShadow: "0 2px 8px rgba(0,0,0,0.25)",
         }}
       />
     </button>

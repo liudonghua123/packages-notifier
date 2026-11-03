@@ -1,7 +1,9 @@
 import { motion } from "motion/react";
 import type { CSSProperties, ReactNode } from "react";
 
-/** Staggered entrance: heading first, then children rising 16-24px. */
+const FLUID: [number, number, number, number] = [0.32, 0.72, 0, 1];
+
+/** Heavy fade-up entrance with blur, fluid easing. */
 export function Enter({
   children,
   delay = 0,
@@ -17,9 +19,9 @@ export function Enter({
     <motion.div
       className={className}
       style={style}
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.5, delay, ease: [0.22, 1, 0.36, 1] }}
+      initial={{ opacity: 0, y: 24, filter: "blur(6px)" }}
+      animate={{ opacity: 1, y: 0, filter: "blur(0px)" }}
+      transition={{ duration: 0.7, delay, ease: FLUID }}
     >
       {children}
     </motion.div>
@@ -30,7 +32,7 @@ export function Stagger({
   children,
   className,
   style,
-  gap = 0.07,
+  gap = 0.08,
 }: {
   children: ReactNode;
   className?: string;
@@ -54,11 +56,12 @@ export function Stagger({
 }
 
 export const staggerItem = {
-  hidden: { opacity: 0, y: 16 },
+  hidden: { opacity: 0, y: 20, filter: "blur(4px)" },
   show: {
     opacity: 1,
     y: 0,
-    transition: { duration: 0.45, ease: [0.22, 1, 0.36, 1] as const },
+    filter: "blur(0px)",
+    transition: { duration: 0.6, ease: FLUID },
   },
 };
 
@@ -76,7 +79,7 @@ export function StaggerItem({
   );
 }
 
-/** Version change badge: old struck through, arrow, new in polarity color. */
+/** Version change: old struck through, arrow, new in polarity color. */
 export function VersionFlip({ from, to }: { from?: string | null; to?: string | null }) {
   return (
     <span className="row" style={{ gap: 8, flexWrap: "wrap" }}>
@@ -87,7 +90,7 @@ export function VersionFlip({ from, to }: { from?: string | null; to?: string | 
         className="pkg-ver new"
         initial={{ opacity: 0, y: 6 }}
         animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.35 }}
+        transition={{ duration: 0.4, ease: FLUID }}
       >
         {to ?? "—"}
       </motion.span>

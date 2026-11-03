@@ -13,6 +13,7 @@ from fastapi import APIRouter, Depends, Header, HTTPException, Request
 from . import db, notify
 from .config import config, save_config
 from .email_sender import send_email, verification_email_html
+from .registry import client
 from .registry import fetch_package_meta
 
 router = APIRouter()
@@ -55,6 +56,34 @@ def _rate_limit_key_guard(email: str) -> None:
 @router.get("/api/health")
 async def health() -> dict:
     return {"ok": True, "time": time.time()}
+
+
+@router.get("/api/search")
+async def search_packages(q: str) -> dict:
+    """Search npm packages (proxy to the official search API) for input autocomplete."""
+    q = q.strip()
+    if not q:
+        return {"results": []}
+    url = f"{config.registry['npm_registry']}/-/v1/search"
+    try:
+        resp = await client().get(url, params={"text": q, "size": 8})
+        resp.raise_for_status()
+        data = resp.json()
+    except Exception:
+        return {"results": []}
+    results = []
+    for obj in data.get("objects", []):
+        pkg = obj.get("package", {})
+        results.append(
+            {
+                "name": pkg.get("name", ""),
+                "version": pkg.get("version", ""),
+                "description": pkg.get("description", ""),
+                "date": pkg.get("date"),
+                "publisher": (pkg.get("publisher") or {}).get("username", ""),
+            }
+        )
+    return {"results": results}
 
 
 @router.get("/api/packages")

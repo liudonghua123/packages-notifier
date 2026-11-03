@@ -23,19 +23,29 @@ export default function App() {
 
   return (
     <div className="shell">
+      <div className="aurora" aria-hidden="true">
+        <span className="a1" />
+        <span className="a2" />
+        <span className="a3" />
+        <span className="a4" />
+      </div>
+
       <header className="topbar">
         <NavLink to="/" className="brand">
-          <span className="dot">▮</span>
-          packages<span style={{ color: "var(--muted)" }}>-</span>notifier
+          <span className="brand-orb" aria-hidden="true" />
+          packages-notifier
         </NavLink>
-        <nav className="row topnav" style={{ gap: 4, marginLeft: 16 }} aria-label="primary">
+        <nav className="topnav" aria-label="primary">
           {navItems.slice(1).map((item) => (
-            <NavLink key={item.to} to={item.to} className="tab" style={{ textDecoration: "none" }}>
-              {({ isActive }) => <span className={isActive ? "tab active" : "tab"} style={{ padding: "10px 8px 12px", display: "inline-block" }}>{item.label}</span>}
+            <NavLink key={item.to} to={item.to} end={item.end}>
+              {({ isActive }) => (
+                <span className={isActive ? "active" : ""} style={{ display: "block" }}>
+                  {item.label}
+                </span>
+              )}
             </NavLink>
           ))}
         </nav>
-        <span className="topbar-spacer" />
         <ThemeLangButtons />
       </header>
 
@@ -56,7 +66,11 @@ export default function App() {
         {navItems.map((item) => (
           <NavLink key={item.to} to={item.to} end={item.end}>
             {({ isActive }) => (
-              <span className={isActive ? "active" : ""} style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 2 }}>
+              <span
+                className={isActive ? "active" : ""}
+                style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 4, position: "relative" }}
+              >
+                {isActive && <span className="nav-dot" />}
                 <BottomIcon name={item.to} />
                 {item.label}
               </span>
@@ -73,7 +87,7 @@ function Fall() {
     <div style={{ display: "flex", justifyContent: "center", padding: 64 }}>
       <motion.span
         className="mono"
-        style={{ color: "var(--muted)", fontSize: 13 }}
+        style={{ color: "var(--muted)", fontSize: 14 }}
         animate={{ opacity: [0.3, 1, 0.3] }}
         transition={{ duration: 1.4, repeat: Infinity }}
       >
@@ -84,7 +98,7 @@ function Fall() {
 }
 
 function BottomIcon({ name }: { name: string }) {
-  const common = { width: 18, height: 18, viewBox: "0 0 24 24", fill: "none", stroke: "currentColor", strokeWidth: 1.8, strokeLinecap: "round" as const, strokeLinejoin: "round" as const };
+  const common = { width: 20, height: 20, viewBox: "0 0 24 24", fill: "none", stroke: "currentColor", strokeWidth: 1.8, strokeLinecap: "round" as const, strokeLinejoin: "round" as const };
   switch (name) {
     case "/":
       return <svg {...common}><path d="M3 10.5 12 3l9 7.5" /><path d="M5 9.5V21h14V9.5" /></svg>;

@@ -1,16 +1,15 @@
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
-import { useSearchParams } from "react-router-dom";
 import { AnimatePresence, motion } from "motion/react";
 import { api, apiErrMessage } from "../api";
+import PackageInput from "../PackageInput";
 import { Enter } from "../motion-bits";
 
 export default function Unsubscribe() {
   const { t } = useTranslation();
-  const [params] = useSearchParams();
   const [step, setStep] = useState<1 | 2 | 3>(1);
-  const [email, setEmail] = useState(params.get("email") || "");
-  const [pkg, setPkg] = useState(params.get("package") || "");
+  const [email, setEmail] = useState("");
+  const [pkg, setPkg] = useState("");
   const [code, setCode] = useState("");
   const [devCode, setDevCode] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
@@ -44,31 +43,33 @@ export default function Unsubscribe() {
   };
 
   return (
-    <div style={{ maxWidth: 480, margin: "0 auto" }}>
+    <div style={{ maxWidth: 520, margin: "0 auto" }}>
       <Enter>
-        <h1 className="h1">{t("unsubscribe.title")}</h1>
+        <h1 className="h1" style={{ fontSize: "clamp(30px, 6vw, 48px)" }}>
+          <span className="grad">{t("unsubscribe.title")}</span>
+        </h1>
       </Enter>
 
       <AnimatePresence mode="wait">
         {step === 1 && (
-          <motion.div key="u1" className="card" initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, x: -24 }}>
+          <motion.div key="u1" className="card" initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, x: -32 }} transition={{ duration: 0.5, ease: [0.32, 0.72, 0, 1] }}>
             <div className="field">
               <label htmlFor="un-email">{t("subscribe.email")}</label>
               <input id="un-email" type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="you@example.com" />
             </div>
             <div className="field">
               <label htmlFor="un-pkg">{t("subscribe.package")}</label>
-              <input id="un-pkg" className="mono" value={pkg} onChange={(e) => setPkg(e.target.value)} placeholder="@cloudflare/vite-plugin" />
+              <PackageInput id="un-pkg" value={pkg} onChange={setPkg} placeholder={t("subscribe.pkgPlaceholder")} />
             </div>
             {error && <p className="error-text" role="alert">{error}</p>}
-            <button className="btn btn-danger" onClick={sendCode} disabled={busy || !email || !pkg} style={{ width: "100%", height: 42 }}>
+            <button className="btn btn-danger" onClick={sendCode} disabled={busy || !email || !pkg} style={{ width: "100%" }}>
               {t("unsubscribe.request")}
             </button>
           </motion.div>
         )}
 
         {step === 2 && (
-          <motion.div key="u2" className="card" initial={{ opacity: 0, x: 24 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: 24 }}>
+          <motion.div key="u2" className="card" initial={{ opacity: 0, x: 32 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: 32 }} transition={{ duration: 0.5, ease: [0.32, 0.72, 0, 1] }}>
             <div className="field">
               <label htmlFor="un-code">{t("subscribe.code")}</label>
               <input
@@ -82,20 +83,20 @@ export default function Unsubscribe() {
               />
             </div>
             {devCode && (
-              <p style={{ color: "var(--warning)", fontSize: 12 }}>
+              <p style={{ color: "var(--warning)", fontSize: 14 }}>
                 {t("subscribe.devCode")} <span className="mono">{devCode}</span>
               </p>
             )}
             {error && <p className="error-text" role="alert">{error}</p>}
-            <button className="btn btn-danger" onClick={confirm} disabled={busy || code.length < 4} style={{ width: "100%", height: 42 }}>
+            <button className="btn btn-danger" onClick={confirm} disabled={busy || code.length < 4} style={{ width: "100%" }}>
               {t("unsubscribe.confirm")}
             </button>
           </motion.div>
         )}
 
         {step === 3 && (
-          <motion.div key="u3" className="card" initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} style={{ textAlign: "center", padding: 40 }}>
-            <p style={{ fontWeight: 600, margin: "0 0 16px" }}>{t("unsubscribe.success", { package: pkg })}</p>
+          <motion.div key="u3" className="card" initial={{ opacity: 0, scale: 0.94 }} animate={{ opacity: 1, scale: 1 }} style={{ textAlign: "center", padding: 48 }}>
+            <p style={{ fontWeight: 700, margin: "0 0 24px", fontSize: 18 }}>{t("unsubscribe.success", { package: pkg })}</p>
             <a href="/" className="btn btn-ghost" style={{ textDecoration: "none" }}>{t("nav.home")}</a>
           </motion.div>
         )}
