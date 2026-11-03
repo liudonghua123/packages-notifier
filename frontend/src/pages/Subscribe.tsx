@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { AnimatePresence, motion } from "motion/react";
 import { api, apiErrMessage } from "../api";
@@ -11,12 +11,21 @@ export default function Subscribe() {
   const [step, setStep] = useState<1 | 2 | 3>(1);
   const [email, setEmail] = useState("");
   const [pkg, setPkg] = useState("");
+  const [eco, setEco] = useState("npm");
+  const [ecos, setEcos] = useState<{ type: string; label: string }[]>([]);
   const [versionMatch, setVersionMatch] = useState("any");
   const [versionPattern, setVersionPattern] = useState("");
   const [code, setCode] = useState("");
   const [devCode, setDevCode] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
+
+  useEffect(() => {
+    api
+      .listEcosystems()
+      .then((d) => setEcos(d.ecosystems))
+      .catch(() => setEcos([{ type: "npm", label: "npm" }]));
+  }, []);
 
   const sendCode = async () => {
     setError("");
@@ -26,7 +35,8 @@ export default function Subscribe() {
         email.trim().toLowerCase(),
         pkg.trim(),
         versionMatch,
-        versionPattern.trim()
+        versionPattern.trim(),
+        eco
       );
       setDevCode(r.dev_code);
       setStep(2);
@@ -80,6 +90,21 @@ export default function Subscribe() {
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
               />
+            </div>
+            <div className="field">
+              <label htmlFor="sub-eco">{t("subscribe.ecosystem")}</label>
+              <select
+                id="sub-eco"
+                value={eco}
+                onChange={(e) => setEco(e.target.value)}
+                style={{ height: 48, borderRadius: 12, padding: "0 16px", background: "var(--surface)", border: "1px solid transparent", color: "var(--text)", fontSize: 16 }}
+              >
+                {ecos.map((e) => (
+                  <option key={e.type} value={e.type}>
+                    {e.label}
+                  </option>
+                ))}
+              </select>
             </div>
             <div className="field">
               <label htmlFor="sub-pkg">{t("subscribe.package")}</label>

@@ -67,7 +67,8 @@ export const api = {
     email: string,
     pkg: string,
     versionMatch?: string,
-    versionPattern?: string
+    versionPattern?: string,
+    packageType?: string
   ) =>
     request<{ ok: boolean; latest: string; dev_code: string | null }>(
       "/api/subscribe/request-code",
@@ -76,6 +77,7 @@ export const api = {
         body: JSON.stringify({
           email,
           package: pkg,
+          ...(packageType && packageType !== "npm" ? { package_type: packageType } : {}),
           ...(versionMatch && versionMatch !== "any"
             ? { version_match: versionMatch, version_pattern: versionPattern }
             : {}),
