@@ -403,25 +403,29 @@ async def admin_get_config(authorization: str | None = Header(None)) -> dict:
 @admin_router.put("/config")
 async def admin_set_config(body: dict[str, Any], authorization: str | None = Header(None)) -> dict:
     _admin_auth(authorization)
-    current = config.model_dump()
 
-    def merge(dst: dict, src: dict) -> dict:
+    # Keep the SAME config object and mutate it in place: every module did
+    # `from .config import config`, so replacing the object (or rebinding
+    # names one by one) leaves stale references behind — SMTP settings etc.
+    # appeared not to apply until the next restart.
+    # Masked password means "keep the current one".
+    if body.get("smtp", {}).get("password") == "******":
+        body = {**body, "smtp": {**body["smtp"], "password": config.smtp.get("password", "")}}
+
+    merged = config.model_dump()
+
+    def merge(dst: dict, src: dict) -> None:
         for k, v in src.items():
             if isinstance(v, dict) and isinstance(dst.get(k), dict):
                 merge(dst[k], v)
             else:
                 dst[k] = v
-        return dst
 
-    merged = merge(current, body)
-    # keep masked password untouched
-    if body.get("smtp", {}).get("password") == "******":
-        merged["smtp"]["password"] = config.smtp.get("password", "")
+    merge(merged, body)
     new_cfg = config.__class__(**merged)
-    # swap the shared module-level config object so every importer sees the new values
-    from . import config as cfgmod
-    cfgmod.config = new_cfg
-    save_config(new_cfg)
-    # also rebind the `config` name inside api.py
-    globals()["config"] = new_cfg
-    return {"ok": True, "config": {**new_cfg.model_dump(), "smtp": {**new_cfg.smtp, "password": "******" if new_cfg.smtp.get("password") else ""}}}
+
+    # in-place update of every top-level field so all shared references stay valid
+    for field in type(config).model_fields:
+        setattr(config, field, getattr(new_cfg, field))
+    save_config(config)
+    return {"ok": True, "config": {**config.model_dump(), "smtp": {**config.smtp, "password": "******" if config.smtp.get("password") else ""}}}
