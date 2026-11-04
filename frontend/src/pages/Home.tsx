@@ -4,8 +4,12 @@ import { Link } from "react-router-dom";
 import { motion } from "motion/react";
 import { api } from "../api";
 import { Enter, Stagger, StaggerItem } from "../motion-bits";
+import { EcoPill } from "./Subscribe";
+import { SearchIcon, MailIcon, CheckIcon } from "../icons";
 
 const RAINBOW = ["var(--accent)", "var(--accent-2)", "var(--accent-3)", "var(--accent-4)", "var(--accent-5)"];
+
+const REGISTRIES = ["npm", "pypi", "crates", "go", "rubygems", "maven", "nuget"];
 
 export default function Home() {
   const { t } = useTranslation();
@@ -60,6 +64,27 @@ export default function Home() {
         ]}
       />
 
+      {/* registry badge wall */}
+      <Enter delay={0.15}>
+        <section className="home-section">
+          <h2 className="section-title">{t("home.registriesTitle")}</h2>
+          <p className="section-sub">{t("home.registriesSub")}</p>
+          <div className="home-registries">
+            {REGISTRIES.map((r, i) => (
+              <motion.span
+                key={r}
+                initial={{ opacity: 0, scale: 0.8, y: 10 }}
+                whileInView={{ opacity: 1, scale: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ delay: i * 0.06, type: "spring", stiffness: 260, damping: 20 }}
+              >
+                <EcoPill type={r} />
+              </motion.span>
+            ))}
+          </div>
+        </section>
+      </Enter>
+
       <Stagger
         style={{
           display: "grid",
@@ -73,31 +98,91 @@ export default function Home() {
         <StatCard value={stats.notified} label={t("home.stats.notified")} color="var(--accent-3)" delay={0.16} />
       </Stagger>
 
+      {/* feature cards */}
+      <Enter delay={0.2}>
+        <section className="home-section" style={{ marginTop: 56 }}>
+          <h2 className="section-title">{t("home.featuresTitle")}</h2>
+          <div className="home-cards">
+            {(["multiEco", "rules", "noAccount"] as const).map((k, i) => (
+              <motion.div
+                key={k}
+                className="card home-feature"
+                style={{ borderTop: `3px solid ${RAINBOW[i % RAINBOW.length]}` }}
+                whileHover={{ y: -6 }}
+                transition={{ type: "spring", stiffness: 300, damping: 22 }}
+              >
+                <h3>{t(`home.features.${i}.title`)}</h3>
+                <p>{t(`home.features.${i}.desc`)}</p>
+              </motion.div>
+            ))}
+          </div>
+        </section>
+      </Enter>
+
+      {/* how it works */}
+      <Enter delay={0.25}>
+        <section className="home-section" style={{ marginTop: 56 }}>
+          <h2 className="section-title">{t("home.stepsTitle")}</h2>
+          <div className="home-steps">
+            {([SearchIcon, MailIcon, CheckIcon] as const).map((Icon, i) => (
+              <motion.div
+                key={i}
+                className="home-step"
+                initial={{ opacity: 0, x: -16 }}
+                whileInView={{ opacity: 1, x: 0 }}
+                viewport={{ once: true }}
+                transition={{ delay: i * 0.12, duration: 0.5, ease: [0.32, 0.72, 0, 1] }}
+              >
+                <span className="home-step-num mono" style={{ color: RAINBOW[i % RAINBOW.length] }}>
+                  {String(i + 1).padStart(2, "0")}
+                </span>
+                <span className="home-step-icon" style={{ color: RAINBOW[i % RAINBOW.length] }}>
+                  <Icon />
+                </span>
+                <div className="grow">
+                  <h3>{t(`home.steps.${i}.title`)}</h3>
+                  <p>{t(`home.steps.${i}.desc`)}</p>
+                </div>
+              </motion.div>
+            ))}
+          </div>
+        </section>
+      </Enter>
+
+      {/* live example */}
       <Enter delay={0.3}>
-        <div className="card" style={{ marginTop: 32 }}>
+        <div className="card" style={{ marginTop: 48 }}>
           <p className="section-title" style={{ fontSize: 14, marginBottom: 8 }}>
             {t("home.example")}
           </p>
           <div className="pkg-row" style={{ minHeight: 48 }}>
-            <span className="brand-orb" style={{ width: 12, height: 12 }} />
             <span className="pkg-name">vite</span>
-            <span className="pill violet mono" style={{ fontSize: 11, height: 20 }}>npm</span>
+            <EcoPill type="npm" />
             <span className="grow" />
             <span className="pill positive mono">8.3.5</span>
           </div>
           <div className="pkg-row" style={{ minHeight: 48 }}>
-            <span className="brand-orb" style={{ width: 12, height: 12 }} />
             <span className="pkg-name">requests</span>
-            <span className="pill violet mono" style={{ fontSize: 11, height: 20 }}>pypi</span>
+            <EcoPill type="pypi" />
             <span className="grow" />
             <span className="pill positive mono">2.34.2</span>
           </div>
           <div className="pkg-row" style={{ minHeight: 48 }}>
-            <span className="brand-orb" style={{ width: 12, height: 12 }} />
             <span className="pkg-name">serde</span>
-            <span className="pill violet mono" style={{ fontSize: 11, height: 20 }}>crates</span>
+            <EcoPill type="crates" />
             <span className="grow" />
             <span className="pill positive mono">1.0.229</span>
+          </div>
+        </div>
+      </Enter>
+
+      {/* MCP callout */}
+      <Enter delay={0.35}>
+        <div className="card home-mcp" style={{ marginTop: 32 }}>
+          <div className="home-mcp-badge mono">MCP</div>
+          <div className="grow">
+            <h3 style={{ margin: "0 0 6px" }}>{t("home.mcpTitle")}</h3>
+            <p style={{ margin: 0, color: "var(--muted)", fontSize: 14 }}>{t("home.mcpDesc")}</p>
           </div>
         </div>
       </Enter>

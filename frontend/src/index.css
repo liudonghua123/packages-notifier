@@ -919,3 +919,83 @@ code, .mono {
 @media (max-width: 560px) {
   .admin-savebar { bottom: 70px; max-width: calc(100vw - 32px); }
 }
+
+/* ---------- home content sections ---------- */
+.home-section { margin-top: 40px; }
+.section-sub { margin: 0 0 16px; color: var(--muted); font-size: 14px; }
+
+.home-registries {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.home-cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 16px;
+}
+.home-feature { padding: 24px; }
+.home-feature h3 { margin: 0 0 8px; font-size: 16px; }
+.home-feature p { margin: 0; color: var(--muted); font-size: 14px; line-height: 1.6; }
+
+.home-steps { display: flex; flex-direction: column; gap: 14px; max-width: 640px; }
+.home-step {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 16px 20px;
+  background: var(--raised);
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  transition: border-color 0.3s var(--ease-fluid), transform 0.3s var(--ease-fluid);
+}
+.home-step:hover { border-color: var(--accent); transform: translateX(4px); }
+.home-step-num {
+  font-size: 13px;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  opacity: 0.85;
+  flex: none;
+}
+.home-step-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  flex: none;
+  border-radius: 12px;
+  background: var(--overlay);
+}
+.home-step h3 { margin: 0 0 4px; font-size: 15px; }
+.home-step p { margin: 0; color: var(--muted); font-size: 13.5px; line-height: 1.55; }
+
+.home-mcp {
+  display: flex;
+  align-items: center;
+  gap: 18px;
+  padding: 22px 24px;
+  border-left: 3px solid var(--accent);
+}
+.home-mcp-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 52px;
+  height: 52px;
+  flex: none;
+  border-radius: 14px;
+  font-size: 13px;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  color: var(--accent);
+  background: rgba(124, 108, 255, 0.14);
+}
+
+/* system theme icon breathing glow */
+.di-system-glow { animation: di-system-breathe 3s ease-in-out infinite; }
+@keyframes di-system-breathe {
+  0%, 100% { opacity: 0.15; }
+  50% { opacity: 0.6; }
+}
