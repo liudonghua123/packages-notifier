@@ -52,6 +52,18 @@ async def poller_status() -> dict:
     }
 
 
+@app.post("/api/poller/check-now")
+async def poller_check_now() -> dict:
+    """Trigger an immediate poll cycle (also used by the admin console)."""
+    updates = await poller.run_once(force=True)
+    return {
+        "ok": True,
+        "updates": len(updates),
+        "last_run": poller.last_run,
+        "last_error": poller.last_error,
+    }
+
+
 # ---------------- static frontend (built SPA) ----------------
 
 if FRONTEND_DIST.exists():
