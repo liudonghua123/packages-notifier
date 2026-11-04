@@ -60,7 +60,7 @@ export default function Query() {
             e.preventDefault();
             search();
           }}
-          style={{ marginBottom: 8, maxWidth: 520 }}
+          style={{ marginBottom: 8, maxWidth: 640 }}
         >
           <select
             aria-label={t("subscribe.ecosystem")}

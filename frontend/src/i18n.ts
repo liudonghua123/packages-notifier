@@ -29,7 +29,7 @@ const en = {
   query: {
     title: "Package query",
     sub: "Live metadata straight from the package registries.",
-    placeholder: "Package name… e.g. vite, requests, serde",
+    placeholder: "Package name… e.g. vite, serde",
     search: "Query",
     acHint: "Pick a registry, then type at least 2 characters to search it",
     latest: "latest",
@@ -166,7 +166,7 @@ const zh = {
   query: {
     title: "包查询",
     sub: "直连各大包仓库的实时元数据。",
-    placeholder: "包名…如 vite、requests、serde",
+    placeholder: "包名…如 vite、serde",
     search: "查询",
     acHint: "先选择包仓库，再输入至少 2 个字符进行搜索",
     latest: "最新版",

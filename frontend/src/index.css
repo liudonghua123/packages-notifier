@@ -658,6 +658,7 @@ code, .mono {
 
 /* ---------- autocomplete dropdown ---------- */
 .ac-wrap { position: relative; }
+.ac-wrap input { width: 100%; }
 
 .ac-dropdown {
   position: absolute;
