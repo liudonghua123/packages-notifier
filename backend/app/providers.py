@@ -228,19 +228,59 @@ async def search_crates(q: str) -> list[dict[str, Any]]:
 
 
 async def search_go(q: str) -> list[dict[str, Any]]:
-    # Go module proxy has no search; probe the exact module path (with optional /vN)
+    # pkg.go.dev HTML search (no public JSON API). Prefer exact module probe
+    # for full paths; scrape the search page for keyword queries.
     module = q.strip().strip("/")
     if not module:
         return []
-    base = _GO_VERSION_SUFFIX.sub("", module)
-    for candidate in (module, base):
-        try:
-            hit = await fetch_go(candidate)
-        except Exception:
-            hit = None
-        if hit:
-            return [_hit(candidate, hit["version"], None)]
-    return []
+    if "/" in module or "." in module:
+        base = _GO_VERSION_SUFFIX.sub("", module)
+        for candidate in (module, base):
+            try:
+                hit = await fetch_go(candidate)
+            except Exception:
+                hit = None
+            if hit:
+                return [_hit(candidate, hit["version"], None)]
+    # keyword scrape of pkg.go.dev/search?m=module
+    try:
+        resp = await http().get(
+            "https://pkg.go.dev/search", params={"q": module, "m": "module"}
+        )
+        if resp.status_code != 200:
+            return []
+        html = resp.text
+    except Exception:
+        return []
+    results: list[dict[str, Any]] = []
+    seen: set[str] = set()
+    # result titles look like:
+    # <a href="/github.com/gin-gonic/gin" data-gtmc="search result" ...>
+    #   gin <span class="SearchSnippet-header-path">(github.com/...)</span></a>
+    # followed by a synopsis <p> and an info label with <strong>vX.Y.Z</strong>
+    for m in re.finditer(
+        r'<a href="(/[^"]+)" data-gtmc="search result".*?>\s*(.*?)\s*'
+        r'<span class="SearchSnippet-header-path">\(([^)]+)\)</span>',
+        html,
+        re.DOTALL,
+    ):
+        path = m.group(3).strip()
+        if path in seen:
+            continue
+        seen.add(path)
+        tail = html[m.end(): m.end() + 1500]
+        ver = re.search(r"<strong>(v[0-9][^<]*)</strong>", tail)
+        syn = re.search(r'<p class="SearchSnippet-synopsis"[^>]*>\s*(.*?)\s*</p>', tail, re.DOTALL)
+        results.append(
+            _hit(
+                path,
+                (ver.group(1).strip() if ver else ""),
+                re.sub(r"<[^>]+>", "", syn.group(1)).strip() if syn else None,
+            )
+        )
+        if len(results) >= 8:
+            break
+    return results
 
 
 async def search_rubygems(q: str) -> list[dict[str, Any]]:
