@@ -7,19 +7,21 @@ export type SearchHit = {
   description: string;
 };
 
-/** npm package autocomplete input with debounced search dropdown. */
+/** Package autocomplete input with debounced per-ecosystem search dropdown. */
 export default function PackageInput({
   value,
   onChange,
   onSelect,
   placeholder,
   id,
+  type = "npm",
 }: {
   value: string;
   onChange: (v: string) => void;
   onSelect?: (hit: SearchHit) => void;
   placeholder?: string;
   id?: string;
+  type?: string;
 }) {
   const [hits, setHits] = useState<SearchHit[]>([]);
   const [open, setOpen] = useState(false);
@@ -28,7 +30,7 @@ export default function PackageInput({
   const wrapRef = useRef<HTMLDivElement>(null);
   const timer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  // debounced search
+  // debounced search (re-runs when the ecosystem changes too)
   useEffect(() => {
     if (timer.current) clearTimeout(timer.current);
     const q = value.trim();
@@ -41,7 +43,9 @@ export default function PackageInput({
     setLoading(true);
     timer.current = setTimeout(async () => {
       try {
-        const r = await fetch(`/api/search?q=${encodeURIComponent(q)}`);
+        const r = await fetch(
+          `/api/search?q=${encodeURIComponent(q)}&type=${encodeURIComponent(type)}`
+        );
         const d = await r.json();
         setHits(d.results || []);
         setOpen(true);
@@ -55,7 +59,7 @@ export default function PackageInput({
     return () => {
       if (timer.current) clearTimeout(timer.current);
     };
-  }, [value]);
+  }, [value, type]);
 
   // close on outside click
   useEffect(() => {

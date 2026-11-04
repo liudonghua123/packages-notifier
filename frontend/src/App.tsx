@@ -4,7 +4,7 @@ import { NavLink, Route, Routes } from "react-router-dom";
 import { motion } from "motion/react";
 import Home from "./pages/Home";
 import { ThemeLangButtons } from "./controls";
-import { HomeIcon, SearchIcon, ListIcon, GearIcon } from "./icons";
+import { HomeIcon, SearchIcon, ListIcon, GearIcon, MailIcon } from "./icons";
 
 const Query = lazy(() => import("./pages/Query"));
 const Subscribe = lazy(() => import("./pages/Subscribe"));
@@ -18,6 +18,7 @@ export default function App() {
   const navItems = [
     { to: "/", label: t("nav.home"), end: true },
     { to: "/query", label: t("nav.query") },
+    { to: "/subscribe", label: t("nav.subscribe") },
     { to: "/subscriptions", label: t("nav.subscriptions") },
     { to: "/admin", label: t("nav.admin") },
   ];
@@ -133,6 +134,8 @@ function BottomIcon({ name }: { name: string }) {
       return <HomeIcon />;
     case "/query":
       return <SearchIcon />;
+    case "/subscribe":
+      return <MailIcon size={20} />;
     case "/subscriptions":
       return <ListIcon />;
     case "/admin":

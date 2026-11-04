@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { AnimatePresence, motion } from "motion/react";
 import { api, apiErrMessage } from "../api";
@@ -10,9 +10,18 @@ type Meta = Awaited<ReturnType<typeof api.packageDetail>>["package"];
 export default function Query() {
   const { t } = useTranslation();
   const [name, setName] = useState("");
+  const [eco, setEco] = useState("npm");
+  const [ecos, setEcos] = useState<{ type: string; label: string }[]>([]);
   const [meta, setMeta] = useState<Meta | null>(null);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
+
+  useEffect(() => {
+    api
+      .listEcosystems()
+      .then((d) => setEcos(d.ecosystems))
+      .catch(() => setEcos([{ type: "npm", label: "npm" }]));
+  }, []);
 
   const search = async (pkg?: string) => {
     const target = (pkg ?? name).trim();
@@ -20,7 +29,7 @@ export default function Query() {
     setError("");
     setBusy(true);
     try {
-      const r = await api.packageDetail(target);
+      const r = await api.packageDetail(target, eco);
       setMeta(r.package);
       setName(target);
     } catch (e) {
@@ -46,13 +55,26 @@ export default function Query() {
 
       <Enter delay={0.1}>
         <form
-          className="row"
+          className="query-form"
           onSubmit={(e) => {
             e.preventDefault();
             search();
           }}
-          style={{ marginBottom: 8, gap: 12, maxWidth: 520 }}
+          style={{ marginBottom: 8, maxWidth: 520 }}
         >
+          <select
+            aria-label={t("subscribe.ecosystem")}
+            value={eco}
+            onChange={(e) => setEco(e.target.value)}
+            className="eco-select"
+            style={{ flex: "none" }}
+          >
+            {ecos.map((e) => (
+              <option key={e.type} value={e.type}>
+                {e.label}
+              </option>
+            ))}
+          </select>
           <div className="grow" style={{ minWidth: 0 }}>
             <PackageInput
               id="query-pkg"
@@ -60,6 +82,7 @@ export default function Query() {
               onChange={setName}
               onSelect={onSelect}
               placeholder={t("query.placeholder")}
+              type={eco}
             />
           </div>
           <button className="btn btn-primary" type="submit" disabled={busy || !name.trim()}>
@@ -94,12 +117,15 @@ export default function Query() {
                 {meta.name}
               </motion.h2>
               <motion.span
-                className="pill violet mono"
+                style={{ display: "flex", gap: 8, alignItems: "center" }}
                 initial={{ scale: 0.7, opacity: 0 }}
                 animate={{ scale: 1, opacity: 1 }}
                 transition={{ delay: 0.2, type: "spring", stiffness: 400, damping: 20 }}
               >
-                {t("query.latest")} {meta.latest}
+                {eco !== "npm" && <span className="pill mono">{eco}</span>}
+                <span className="pill violet mono">
+                  {t("query.latest")} {meta.latest}
+                </span>
               </motion.span>
             </div>
 
@@ -161,7 +187,7 @@ export default function Query() {
 
             <div style={{ marginTop: 24 }}>
               <a
-                href={`/subscribe?package=${encodeURIComponent(meta.name)}`}
+                href={`/subscribe?package=${encodeURIComponent(meta.name)}&type=${encodeURIComponent(eco)}`}
                 className="btn btn-primary"
                 style={{ textDecoration: "none" }}
               >

@@ -46,7 +46,7 @@ export const api = {
       "/api/ecosystems"
     ),
 
-  packageDetail: (name: string) =>
+  packageDetail: (name: string, type: string = "npm") =>
     request<{
       package: {
         name: string;
@@ -61,7 +61,10 @@ export const api = {
         license: string;
       };
       watched: boolean;
-    }>(`/api/packages/${encodeURIComponent(name)}`),
+      package_type?: string;
+    }>(
+      `/api/packages/${encodeURIComponent(name)}?type=${encodeURIComponent(type)}`
+    ),
 
   subscribeRequestCode: (
     email: string,
@@ -85,10 +88,27 @@ export const api = {
       }
     ),
 
+  subscribeRequestCodeBatch: (
+    email: string,
+    packages: { package: string; version_match?: string; version_pattern?: string }[],
+    packageType?: string
+  ) =>
+    request<{ ok: boolean; packages: string[]; dev_code: string | null }>(
+      "/api/subscribe/request-code",
+      {
+        method: "POST",
+        body: JSON.stringify({
+          email,
+          packages,
+          ...(packageType && packageType !== "npm" ? { package_type: packageType } : {}),
+        }),
+      }
+    ),
+
   subscribeVerify: (email: string, pkg: string, code: string) =>
-    request<{ ok: boolean }>("/api/subscribe/verify", {
+    request<{ ok: boolean; packages?: string[] }>("/api/subscribe/verify", {
       method: "POST",
-      body: JSON.stringify({ email, package: pkg, code }),
+      body: JSON.stringify({ email, ...(pkg ? { package: pkg } : {}), code }),
     }),
 
   unsubscribeRequestCode: (email: string, pkg: string) =>

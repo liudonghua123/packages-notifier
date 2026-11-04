@@ -595,14 +595,18 @@ code, .mono {
   flex-direction: column;
   align-items: center;
   gap: 4px;
-  padding: 10px 16px 18px;
+  flex: 1 1 0;
+  min-width: 0;
+  padding: 10px 2px 18px;
   color: var(--muted);
-  font-size: 12px;
+  font-size: 10.5px;
+  letter-spacing: -0.01em;
   font-weight: 600;
   border-radius: var(--radius-control);
   position: relative;
   transition: color 0.3s var(--ease-fluid), background 0.3s var(--ease-fluid), transform 0.3s var(--ease-fluid);
 }
+.bottombar a > span:last-child { max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 
 .bottombar a:active { transform: scale(0.95); }
 .bottombar a.active { color: var(--text); background: var(--raised); }
@@ -693,6 +697,86 @@ code, .mono {
 .ac-item .vr { font-family: var(--mono); font-size: 12px; color: var(--accent); margin-left: auto; flex: none; }
 
 .ac-empty { padding: 16px; font-size: 14px; color: var(--muted); text-align: center; }
+
+/* ---------- ecosystem select + multi-subscribe list ---------- */
+.eco-select {
+  height: 48px;
+  border-radius: 12px;
+  padding: 0 14px;
+  background: var(--surface);
+  border: 1px solid transparent;
+  color: var(--text);
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+  max-width: 100%;
+  text-overflow: ellipsis;
+  transition: border-color 0.3s var(--ease-fluid), box-shadow 0.3s var(--ease-fluid);
+}
+.eco-select:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 18%, transparent); }
+
+.sub-add-row {
+  display: flex;
+  gap: 10px;
+  align-items: stretch;
+}
+.sub-add-btn { flex: none; height: 48px; padding: 0 20px; }
+
+.sub-item {
+  position: relative;
+  border: 1px solid var(--border);
+  background: var(--raised);
+  border-radius: 14px;
+  padding: 12px 14px;
+  margin-bottom: 10px;
+  transition: border-color 0.3s var(--ease-fluid), background 0.3s var(--ease-fluid);
+}
+.sub-item:hover { border-color: color-mix(in srgb, var(--accent) 35%, var(--border)); }
+
+.sub-gear {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  flex: none;
+  border: none;
+  border-radius: 10px;
+  background: transparent;
+  color: var(--muted);
+  cursor: pointer;
+  transition: color 0.3s var(--ease-fluid), background 0.3s var(--ease-fluid), transform 0.4s var(--ease-fluid);
+}
+.sub-gear:hover { color: var(--text); background: var(--overlay); }
+.sub-gear.on { color: var(--accent); background: rgba(124, 108, 255, 0.14); }
+.sub-gear.on svg { transform: rotate(90deg); }
+
+.sub-x {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  flex: none;
+  border: none;
+  border-radius: 10px;
+  background: transparent;
+  color: var(--muted);
+  font-size: 20px;
+  line-height: 1;
+  cursor: pointer;
+  transition: color 0.3s var(--ease-fluid), background 0.3s var(--ease-fluid);
+}
+.sub-x:hover { color: var(--negative); background: var(--pill-negative-bg); }
+
+/* query form: stack on narrow screens */
+.query-form { display: flex; gap: 12px; flex-wrap: wrap; }
+.query-form .grow { flex: 1 1 200px; min-width: 0; }
+
+@media (max-width: 560px) {
+  .query-form .eco-select { flex: 1 1 100%; max-width: none; }
+  .query-form .btn-primary { flex: 1 1 100%; }
+}
 
 /* skeleton */
 .skel {
