@@ -25,6 +25,31 @@ const en = {
       notified: "emails sent",
     },
     example: "e.g. vite · requests · serde · gin",
+    registriesTitle: "Seven registries, one inbox",
+    registriesSub: "We poll each registry so you don't have to.",
+    featuresTitle: "Why packages-notifier",
+    features: [
+      {
+        title: "Multi-ecosystem",
+        desc: "npm, PyPI, crates.io, Go modules, Maven, RubyGems and NuGet — search and watch them all from one place.",
+      },
+      {
+        title: "Version rules",
+        desc: "Only care about stable releases? Pin exact versions or match patterns like ^2.0 to cut the noise.",
+      },
+      {
+        title: "No account needed",
+        desc: "Email verification codes only — sign in with your inbox, verify once, and your subscriptions stay valid.",
+      },
+    ],
+    stepsTitle: "How it works",
+    steps: [
+      { title: "Search & add", desc: "Find packages across 7 registries and add them to your watch list." },
+      { title: "Verify by email", desc: "One 6-digit code confirms your address — no password, no signup form." },
+      { title: "Get notified", desc: "When a new version drops, an email lands in your inbox within minutes." },
+    ],
+    mcpTitle: "Also an MCP server",
+    mcpDesc: "Connect AI assistants directly: search packages and manage subscriptions over the Model Context Protocol at /mcp.",
   },
   query: {
     title: "Package query",
@@ -146,7 +171,7 @@ const en = {
     pollRunning: "Poller running every {{n}}s.",
     lastRun: "Last check",
   },
-  theme: { toggle: "Toggle theme", dark: "Dark", light: "Light" },
+  theme: { toggle: "Toggle theme", system: "System", dark: "Dark", light: "Light" },
   lang: { toggle: "中文" },
   err: {
     invalidEmail: "Invalid email address.",
@@ -184,6 +209,31 @@ const zh = {
       notified: "封通知已发",
     },
     example: "例如 vite · requests · serde · gin",
+    registriesTitle: "七大仓库，一个收件箱",
+    registriesSub: "各大包仓库的变更，由我们替你盯梢。",
+    featuresTitle: "为什么选 packages-notifier",
+    features: [
+      {
+        title: "多生态一站式",
+        desc: "npm、PyPI、crates.io、Go modules、Maven、RubyGems、NuGet——在一个页面搜索并关注所有生态的包。",
+      },
+      {
+        title: "版本规则",
+        desc: "只关心稳定版？可以锁定精确版本，或用 ^2.0 这类模式匹配，过滤掉无关噪音。",
+      },
+      {
+        title: "无需注册账号",
+        desc: "仅靠邮箱验证码登录——验证一次，订阅长期有效，没有密码也没有注册表单。",
+      },
+    ],
+    stepsTitle: "三步上手",
+    steps: [
+      { title: "搜索并添加", desc: "跨 7 大仓库搜索包，加入你的关注清单。" },
+      { title: "邮箱验证", desc: "一个 6 位验证码确认邮箱——无需密码、无需注册。" },
+      { title: "坐等通知", desc: "新版本发布后几分钟内，通知邮件直达收件箱。" },
+    ],
+    mcpTitle: "还是一台 MCP 服务器",
+    mcpDesc: "让 AI 助手直连：通过 Model Context Protocol（/mcp 路径）搜索包、管理订阅。",
   },
   query: {
     title: "包查询",
@@ -305,7 +355,7 @@ const zh = {
     pollRunning: "轮询运行中，每 {{n}} 秒一次。",
     lastRun: "上次检查",
   },
-  theme: { toggle: "切换主题", dark: "深色", light: "浅色" },
+  theme: { toggle: "切换主题", system: "跟随系统", dark: "深色", light: "浅色" },
   lang: { toggle: "English" },
   err: {
     invalidEmail: "邮箱格式不对。",
