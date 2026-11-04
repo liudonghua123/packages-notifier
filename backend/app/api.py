@@ -358,20 +358,76 @@ async def unsubscribe_verify(body: dict[str, Any]) -> dict:
     return {"ok": True, "deleted": deleted}
 
 
+def _query_gate(email: str) -> None:
+    """Raise 403 unless this email verified a query code within the TTL window."""
+    if not config.verification.get("query_requires_code", True):
+        return
+    verified_at = db.get_query_verified_at(email)
+    if verified_at is None:
+        raise HTTPException(403, "email verification required")
+    ttl = int(config.verification.get("query_verify_ttl_seconds", 86400))
+    if time.time() - verified_at > ttl:
+        raise HTTPException(403, "verification expired, request a new code")
+
+
+@router.post("/api/subscriptions/request-code")
+async def subscriptions_request_code(body: dict[str, Any]) -> dict:
+    """Step 1 of viewing subscriptions: prove email ownership with a code."""
+    email = str(body.get("email", "")).strip().lower()
+    await _validate_email(email)
+
+    max_req = int(config.rate_limit.get("code_request_per_email_per_hour", 5))
+    n = await db.run(db.code_requests_in_window, email, 3600)
+    if n >= max_req:
+        raise HTTPException(429, "too many code requests, try later")
+
+    code = _gen_code()
+    await db.run(
+        db.create_code, email, "query", code, {},
+        int(config.verification.get("code_ttl_seconds", 600)),
+    )
+    subject, html = verification_email_html(code, "query", None, _ttl_minutes())
+    await send_email(email, subject, html)
+    return {"ok": True, "dev_code": code if not config.smtp.get("host") else None}
+
+
+@router.post("/api/subscriptions/verify")
+async def subscriptions_verify(body: dict[str, Any]) -> dict:
+    """Step 2 of viewing subscriptions: confirm the code, open the TTL window."""
+    email = str(body.get("email", "")).strip().lower()
+    code = str(body.get("code", "")).strip()
+    await _validate_email(email)
+    row = await db.run(db.verify_code, email, "query", code)
+    if not row:
+        raise HTTPException(400, "invalid or expired code")
+    await db.run(db.set_query_verified, email)
+    ttl = int(config.verification.get("query_verify_ttl_seconds", 86400))
+    return {"ok": True, "valid_until": time.time() + ttl}
+
+
 @router.get("/api/subscriptions")
 async def my_subscriptions(email: str) -> dict:
-    """Query a user's subscriptions (email only; no sensitive data returned)."""
+    """Query a user's subscriptions (requires a recent email verification)."""
     email = email.strip().lower()
     await _validate_email(email)
+    _query_gate(email)
     subs = await db.run(db.list_subscriptions, email, None)
+    # attach the package ecosystem so the UI can badge each row
+    packages = {p["package"]: p for p in await db.run(db.list_packages)}
+    verified_at = db.get_query_verified_at(email)
+    ttl = int(config.verification.get("query_verify_ttl_seconds", 86400))
     return {
         "email": email,
+        "valid_until": (verified_at + ttl) if verified_at else None,
         "subscriptions": [
             {
                 "package": s["package"],
+                "package_type": (packages.get(s["package"]) or {}).get("package_type") or "npm",
+                "description": (packages.get(s["package"]) or {}).get("description"),
                 "verified": bool(s["verified"]),
                 "created_at": s["created_at"],
                 "last_notified_version": s["last_notified_version"],
+                "known_version": (packages.get(s["package"]) or {}).get("latest_version"),
                 "version_match": s.get("version_match") or "any",
                 "version_pattern": s.get("version_pattern"),
             }

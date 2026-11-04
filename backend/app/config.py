@@ -64,6 +64,9 @@ DEFAULTS: dict[str, Any] = {
         "max_attempts": 5,
         "subscribe_requires_code": True,
         "unsubscribe_requires_code": True,
+        "query_requires_code": True,
+        # once verified, how long a query token lasts (seconds)
+        "query_verify_ttl_seconds": 86400,
     },
     "rate_limit": {
         "code_request_per_email_per_hour": 5,

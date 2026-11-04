@@ -67,6 +67,10 @@ def _init_schema(conn: sqlite3.Connection) -> None:
             key TEXT PRIMARY KEY,
             value TEXT
         );
+        CREATE TABLE IF NOT EXISTS query_verifications (
+            email TEXT PRIMARY KEY,
+            verified_at REAL NOT NULL
+        );
         CREATE INDEX IF NOT EXISTS idx_subs_email ON subscriptions(email);
         CREATE INDEX IF NOT EXISTS idx_subs_pkg ON subscriptions(package);
         CREATE INDEX IF NOT EXISTS idx_codes_email ON verification_codes(email);
@@ -252,6 +256,26 @@ def cleanup_expired_codes() -> None:
     conn = get_conn()
     conn.execute("DELETE FROM verification_codes WHERE expires_at < ?", (time.time() - 3600,))
     conn.commit()
+
+
+# ---------- query verifications (who may read /api/subscriptions) ----------
+
+def set_query_verified(email: str) -> None:
+    conn = get_conn()
+    conn.execute(
+        "INSERT INTO query_verifications(email, verified_at) VALUES(?,?) "
+        "ON CONFLICT(email) DO UPDATE SET verified_at=excluded.verified_at",
+        (email, time.time()),
+    )
+    conn.commit()
+
+
+def get_query_verified_at(email: str) -> float | None:
+    conn = get_conn()
+    row = conn.execute(
+        "SELECT verified_at FROM query_verifications WHERE email=?", (email,)
+    ).fetchone()
+    return row["verified_at"] if row else None
 
 
 # ---------- packages ----------

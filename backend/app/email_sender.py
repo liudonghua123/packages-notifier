@@ -53,6 +53,7 @@ def verification_email_html(code: str, purpose: str, package: str | None, ttl_mi
         "subscribe": "订阅",
         "unsubscribe": "取消订阅",
         "add_package": "添加关注包",
+        "query": "查看订阅列表",
     }.get(purpose, purpose)
     pkg_line = (
         f'<p style="margin:0 0 16px;color:#8a8c92;font-size:14px;">目标包：<code style="color:#fff;background:#212023;padding:2px 8px;border-radius:4px;">{package}</code></p>'
