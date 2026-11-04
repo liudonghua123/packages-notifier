@@ -2,13 +2,15 @@ import { useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { AnimatePresence, motion } from "motion/react";
 import { api, apiErrMessage } from "../api";
-import PackageInput from "../PackageInput";
+import PackageInput, { type SearchHit } from "../PackageInput";
 import { Enter } from "../motion-bits";
-import { CheckIcon, GearIcon } from "../icons";
+import { CheckIcon, GearIcon, EcoIcon } from "../icons";
 
 type PkgItem = {
   key: string;
   name: string;
+  type: string;
+  version: string | null;
   versionMatch: string;
   versionPattern: string;
 };
@@ -17,6 +19,31 @@ const VMODES = ["any", "equals", "startswith", "regexmatch"] as const;
 
 const vmPlaceholder = (m: string) =>
   m === "equals" ? "1.2.3" : m === "startswith" ? "1.2." : "^2\\.\\d+\\.";
+
+/* per-ecosystem accent colors for the type pills */
+const ECO_STYLE: Record<string, { bg: string; fg: string }> = {
+  npm: { bg: "rgba(203, 51, 51, 0.15)", fg: "#e05d5d" },
+  pypi: { bg: "rgba(55, 118, 171, 0.16)", fg: "#6ba3d6" },
+  crates: { bg: "rgba(222, 120, 51, 0.15)", fg: "#e08c4f" },
+  go: { bg: "rgba(0, 172, 191, 0.15)", fg: "#4fc3d4" },
+  rubygems: { bg: "rgba(156, 57, 57, 0.16)", fg: "#d96a6a" },
+  maven: { bg: "rgba(196, 100, 36, 0.15)", fg: "#d68a4a" },
+  nuget: { bg: "rgba(74, 66, 156, 0.18)", fg: "#9d94e8" },
+};
+
+export function EcoPill({ type, label }: { type: string; label?: string }) {
+  const s = ECO_STYLE[type] || { bg: "var(--raised)", fg: "var(--muted)" };
+  return (
+    <span
+      className="eco-pill"
+      style={{ background: s.bg, color: s.fg }}
+      title={label || type}
+    >
+      <EcoIcon type={type} />
+      {label || type}
+    </span>
+  );
+}
 
 export default function Subscribe() {
   const { t } = useTranslation();
@@ -45,7 +72,7 @@ export default function Subscribe() {
     [items, pkgInput]
   );
 
-  const addItem = (name?: string) => {
+  const addItem = (name?: string, version?: string | null) => {
     const n = (name ?? pkgInput).trim();
     if (!n) return;
     if (items.some((it) => it.name.toLowerCase() === n.toLowerCase())) {
@@ -54,7 +81,14 @@ export default function Subscribe() {
     }
     setItems((prev) => [
       ...prev,
-      { key: `${n}-${Date.now()}`, name: n, versionMatch: "any", versionPattern: "" },
+      {
+        key: `${n}-${Date.now()}`,
+        name: n,
+        type: eco,
+        version: version ?? null,
+        versionMatch: "any",
+        versionPattern: "",
+      },
     ]);
     setPkgInput("");
   };
@@ -166,7 +200,7 @@ export default function Subscribe() {
                     id="sub-pkg"
                     value={pkgInput}
                     onChange={setPkgInput}
-                    onSelect={(hit) => addItem(hit.name)}
+                    onSelect={(hit: SearchHit) => addItem(hit.name, hit.version)}
                     placeholder={t("subscribe.pkgPlaceholder")}
                     type={eco}
                   />
@@ -198,9 +232,20 @@ export default function Subscribe() {
                   transition={{ duration: 0.35, ease: [0.32, 0.72, 0, 1] }}
                 >
                   <div className="row between" style={{ gap: 8, minWidth: 0 }}>
-                    <span className="pkg-name grow" style={{ minWidth: 0 }}>
-                      {it.name}
-                    </span>
+                    <div className="grow" style={{ minWidth: 0 }}>
+                      <div className="pkg-name" style={{ wordBreak: "break-all" }}>
+                        {it.name}
+                      </div>
+                      <div className="row" style={{ gap: 6, marginTop: 4, flexWrap: "wrap" }}>
+                        <EcoPill type={it.type} />
+                        {it.version && <span className="pkg-ver" style={{ fontSize: 12 }}>{it.version}</span>}
+                        {it.versionMatch !== "any" && (
+                          <span className="pill violet mono" style={{ height: 20, fontSize: 11 }}>
+                            {it.versionMatch}: {it.versionPattern}
+                          </span>
+                        )}
+                      </div>
+                    </div>
                     <button
                       type="button"
                       className={`sub-gear${openSettings === it.key ? " on" : ""}`}

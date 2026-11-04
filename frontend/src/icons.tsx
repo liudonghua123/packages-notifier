@@ -99,3 +99,78 @@ export function MailIcon({ size = 36 }: { size?: number }) {
     </svg>
   );
 }
+
+/* Eco — tiny registry glyph per ecosystem (12px inline pill icon).
+   Shapes: npm box / pypi snake-coil dots / crates gear-box / go gopher-ish bolt /
+   rubygems gem / maven jar / nuget nugget. Each has a subtle pulse. */
+export function EcoIcon({ type }: { type: string }) {
+  const shared = {
+    width: 12,
+    height: 12,
+    viewBox: "0 0 24 24",
+    fill: "none",
+    stroke: "currentColor",
+    strokeWidth: 2.2,
+    strokeLinecap: "round" as const,
+    strokeLinejoin: "round" as const,
+    className: "eco-glyph",
+    "aria-hidden": true as const,
+  };
+  switch (type) {
+    case "npm":
+      return (
+        <svg {...shared}>
+          <path d="M3 8h18v9H3z" />
+          <path d="M9 8v9M9 12h6" />
+        </svg>
+      );
+    case "pypi":
+      return (
+        <svg {...shared}>
+          <path d="M12 3c-5 0-8 2-8 5s3 4 8 4 8 1 8 4-3 5-8 5" />
+          <circle cx="7" cy="8" r="0.6" fill="currentColor" stroke="none" />
+          <circle cx="17" cy="16" r="0.6" fill="currentColor" stroke="none" />
+        </svg>
+      );
+    case "crates":
+      return (
+        <svg {...shared}>
+          <path d="M12 2 21 7v10l-9 5-9-5V7l9-5Z" />
+          <path d="M12 8v8M8.5 10v4M15.5 10v4" />
+        </svg>
+      );
+    case "go":
+      return (
+        <svg {...shared}>
+          <path d="M13 2 5 13h5l-1 9 8-11h-5l1-9Z" />
+        </svg>
+      );
+    case "rubygems":
+      return (
+        <svg {...shared}>
+          <path d="M7 3h10l4 6-9 12L3 9l4-6Z" />
+          <path d="M3 9h18M9.5 9 12 21l2.5-12" />
+        </svg>
+      );
+    case "maven":
+      return (
+        <svg {...shared}>
+          <path d="M6 3h12v18H6z" />
+          <path d="M6 8h12M9 3v5M15 3v5" />
+        </svg>
+      );
+    case "nuget":
+      return (
+        <svg {...shared}>
+          <path d="M4 12a8 8 0 1 1 8 8H4v-8Z" />
+          <circle cx="9" cy="9" r="1" fill="currentColor" stroke="none" />
+        </svg>
+      );
+    default:
+      return (
+        <svg {...shared}>
+          <circle cx="12" cy="12" r="8" />
+        </svg>
+      );
+  }
+}

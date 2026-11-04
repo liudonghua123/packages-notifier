@@ -697,6 +697,27 @@ code, .mono {
 }
 .ac-item .vr { font-family: var(--mono); font-size: 12px; color: var(--accent); margin-left: auto; flex: none; }
 
+/* per-registry tag in autocomplete rows */
+.ac-eco {
+  flex: none;
+  height: 18px;
+  display: inline-flex;
+  align-items: center;
+  padding: 0 7px;
+  border-radius: 999px;
+  font-family: var(--mono);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.03em;
+}
+.ac-eco.eco-npm      { background: rgba(203, 51, 51, 0.15); color: #e05d5d; }
+.ac-eco.eco-pypi     { background: rgba(55, 118, 171, 0.16); color: #6ba3d6; }
+.ac-eco.eco-crates   { background: rgba(222, 120, 51, 0.15); color: #e08c4f; }
+.ac-eco.eco-go       { background: rgba(0, 172, 191, 0.15); color: #4fc3d4; }
+.ac-eco.eco-rubygems { background: rgba(156, 57, 57, 0.16); color: #d96a6a; }
+.ac-eco.eco-maven    { background: rgba(196, 100, 36, 0.15); color: #d68a4a; }
+.ac-eco.eco-nuget    { background: rgba(74, 66, 156, 0.18); color: #9d94e8; }
+
 .ac-empty { padding: 16px; font-size: 14px; color: var(--muted); text-align: center; }
 
 /* ---------- ecosystem select + multi-subscribe list ---------- */
@@ -769,6 +790,30 @@ code, .mono {
   transition: color 0.3s var(--ease-fluid), background 0.3s var(--ease-fluid);
 }
 .sub-x:hover { color: var(--negative); background: var(--pill-negative-bg); }
+
+/* ecosystem pill (per-registry color set inline) */
+.eco-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  height: 20px;
+  padding: 0 8px;
+  border-radius: 999px;
+  font-size: 11px;
+  font-weight: 700;
+  font-family: var(--mono);
+  letter-spacing: 0.02em;
+  white-space: nowrap;
+}
+
+.eco-glyph { animation: eco-pulse 2.4s ease-in-out infinite; }
+@keyframes eco-pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.55; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .eco-glyph { animation: none; }
+}
 
 /* query form: stack on narrow screens */
 .query-form { display: flex; gap: 12px; flex-wrap: wrap; }

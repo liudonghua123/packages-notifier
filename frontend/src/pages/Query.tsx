@@ -4,6 +4,7 @@ import { AnimatePresence, motion } from "motion/react";
 import { api, apiErrMessage } from "../api";
 import PackageInput, { type SearchHit } from "../PackageInput";
 import { Enter } from "../motion-bits";
+import { EcoPill } from "./Subscribe";
 
 type Meta = Awaited<ReturnType<typeof api.packageDetail>>["package"];
 
@@ -122,7 +123,7 @@ export default function Query() {
                 animate={{ scale: 1, opacity: 1 }}
                 transition={{ delay: 0.2, type: "spring", stiffness: 400, damping: 20 }}
               >
-                {eco !== "npm" && <span className="pill mono">{eco}</span>}
+                {eco !== "npm" && <EcoPill type={eco} />}
                 <span className="pill violet mono">
                   {t("query.latest")} {meta.latest}
                 </span>

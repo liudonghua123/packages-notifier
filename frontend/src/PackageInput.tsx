@@ -142,6 +142,9 @@ export default function PackageInput({
                 <span className="nm">{hit.name}</span>
                 <span className="ds">{hit.description}</span>
                 <span className="vr">{hit.version}</span>
+                <span className={`ac-eco eco-${type}`} title={type}>
+                  {type}
+                </span>
               </button>
             ))}
           </motion.div>
