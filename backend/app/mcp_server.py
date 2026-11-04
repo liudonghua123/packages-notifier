@@ -99,10 +99,14 @@ async def list_subscriptions(email: str) -> dict[str, Any]:
 
 
 @mcp.tool
-async def search_npm_packages(query: str) -> dict[str, Any]:
-    """Search npm packages by keyword (official registry search API)."""
+async def search_packages_tool(query: str, package_type: str = "npm") -> dict[str, Any]:
+    """Search packages by keyword in a registry (autocomplete).
+
+    package_type selects the ecosystem (npm, pypi, crates, go,
+    rubygems, maven, nuget).
+    """
     from .api import search_packages
-    return await search_packages(query)
+    return await search_packages(query, package_type)
 
 
 @mcp.tool
