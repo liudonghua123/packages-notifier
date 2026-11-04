@@ -153,8 +153,17 @@ export const api = {
     }>(`/api/subscriptions?email=${encodeURIComponent(email)}`),
 
   pollerStatus: () =>
-    request<{ running: boolean; last_run: number | null; interval_seconds: number }>(
-      "/api/poller/status"
+    request<{
+      running: boolean;
+      last_run: number | null;
+      last_error: string | null;
+      interval_seconds: number;
+    }>("/api/poller/status"),
+
+  pollerCheckNow: () =>
+    request<{ ok: boolean; updates: number; last_run: number | null; last_error: string | null }>(
+      "/api/poller/check-now",
+      { method: "POST" }
     ),
 
   adminGetConfig: (token: string) =>
