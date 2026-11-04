@@ -179,6 +179,7 @@ export default function Admin() {
         <Section title={t("admin.verification")} color="var(--accent-3)">
           <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))", gap: "16px 24px" }}>
             <Field label={t("admin.codeTtl")} value={cfg.verification.code_ttl_seconds} onChange={(v: string) => set(["verification", "code_ttl_seconds"], Number(v))} type="number" />
+            <Field label={t("admin.queryVerifyTtl")} value={cfg.verification.query_verify_ttl_seconds} onChange={(v: string) => set(["verification", "query_verify_ttl_seconds"], Number(v))} type="number" />
             <Field label={t("admin.codeLen")} value={cfg.verification.code_length} onChange={(v: string) => set(["verification", "code_length"], Number(v))} type="number" />
             <Field label={t("admin.rateLimit")} value={cfg.rate_limit.code_request_per_email_per_hour} onChange={(v: string) => set(["rate_limit", "code_request_per_email_per_hour"], Number(v))} type="number" />
             <Field label={t("admin.baseUrl")} value={cfg.base_url} onChange={(v: string) => set(["base_url"], v)} mono />

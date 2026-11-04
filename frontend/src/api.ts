@@ -123,14 +123,30 @@ export const api = {
       body: JSON.stringify({ email, package: pkg, code }),
     }),
 
+  subscriptionsRequestCode: (email: string) =>
+    request<{ ok: boolean; dev_code: string | null }>(
+      "/api/subscriptions/request-code",
+      { method: "POST", body: JSON.stringify({ email }) }
+    ),
+
+  subscriptionsVerify: (email: string, code: string) =>
+    request<{ ok: boolean; valid_until: number }>(
+      "/api/subscriptions/verify",
+      { method: "POST", body: JSON.stringify({ email, code }) }
+    ),
+
   mySubscriptions: (email: string) =>
     request<{
       email: string;
+      valid_until: number | null;
       subscriptions: {
         package: string;
+        package_type?: string;
+        description?: string | null;
         verified: boolean;
         created_at: number;
         last_notified_version: string | null;
+        known_version?: string | null;
         version_match: string;
         version_pattern: string | null;
       }[];
