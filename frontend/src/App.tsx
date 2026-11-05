@@ -4,6 +4,7 @@ import { NavLink, Route, Routes } from "react-router-dom";
 import { motion } from "motion/react";
 import Home from "./pages/Home";
 import { ThemeLangButtons } from "./controls";
+import { ConfirmHost } from "./modal";
 import { HomeIcon, SearchIcon, ListIcon, GearIcon, MailIcon } from "./icons";
 
 const Query = lazy(() => import("./pages/Query"));
@@ -82,6 +83,8 @@ export default function App() {
           </NavLink>
         ))}
       </nav>
+
+      <ConfirmHost />
     </div>
   );
 }

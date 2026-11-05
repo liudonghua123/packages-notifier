@@ -6,6 +6,7 @@ import { api, apiErrMessage } from "../api";
 import PackageInput from "../PackageInput";
 import { Enter } from "../motion-bits";
 import { CheckIcon } from "../icons";
+import { confirm as confirmDialog } from "../modal";
 
 export default function Unsubscribe() {
   const { t } = useTranslation();
@@ -74,8 +75,14 @@ export default function Unsubscribe() {
     const msg = p
       ? t("unsubscribe.directConfirmPkg", { package: p })
       : t("unsubscribe.directConfirmAll");
-    if (!window.confirm(msg)) return true; // treated as handled: user cancelled
-    directRemove(em, p);
+    confirmDialog({
+      title: msg,
+      danger: true,
+      confirmText: t("unsubscribe.directBtn"),
+      cancelText: t("subscribe.back"),
+    }).then((ok) => {
+      if (ok) directRemove(em, p);
+    });
     return true;
   };
 

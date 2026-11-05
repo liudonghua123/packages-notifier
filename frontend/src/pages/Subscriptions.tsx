@@ -5,6 +5,7 @@ import { api, apiErrMessage } from "../api";
 import { EcoPill } from "./Subscribe";
 import { Enter } from "../motion-bits";
 import { CheckIcon } from "../icons";
+import { confirm } from "../modal";
 
 type Sub = {
   package: string;
@@ -77,7 +78,13 @@ export default function Subscriptions() {
   const remove = async (pkg: string) => {
     const em = email.trim().toLowerCase();
     if (validUntil && validUntil * 1000 > Date.now()) {
-      if (!window.confirm(t("subs.removeConfirm", { package: pkg }))) return;
+      const ok = await confirm({
+        title: t("subs.removeConfirm", { package: pkg }),
+        danger: true,
+        confirmText: t("subs.remove"),
+        cancelText: t("subscribe.back"),
+      });
+      if (!ok) return;
       setBusy(true);
       setError("");
       try {
@@ -98,7 +105,13 @@ export default function Subscriptions() {
   const removeAll = async () => {
     const em = email.trim().toLowerCase();
     if (validUntil && validUntil * 1000 > Date.now()) {
-      if (!window.confirm(t("subs.removeAllConfirm"))) return;
+      const ok = await confirm({
+        title: t("subs.removeAllConfirm"),
+        danger: true,
+        confirmText: t("subs.removeAll"),
+        cancelText: t("subscribe.back"),
+      });
+      if (!ok) return;
       setBusy(true);
       setError("");
       try {

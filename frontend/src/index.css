@@ -999,3 +999,74 @@ code, .mono {
   0%, 100% { opacity: 0.15; }
   50% { opacity: 0.6; }
 }
+
+/* ---------- styled confirm modal ---------- */
+.modal-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  background: rgba(10, 10, 12, 0.55);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+}
+[data-theme="light"] .modal-backdrop {
+  background: rgba(240, 240, 242, 0.55);
+}
+
+.modal-card {
+  width: 100%;
+  max-width: 400px;
+  background: var(--card);
+  border: 1px solid var(--line);
+  border-radius: 18px;
+  padding: 28px;
+  text-align: center;
+  box-shadow: 0 24px 64px rgba(0, 0, 0, 0.35);
+}
+
+.modal-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 48px;
+  height: 48px;
+  margin-bottom: 16px;
+  border-radius: 14px;
+  font-size: 24px;
+  font-weight: 800;
+  color: var(--accent);
+  background: rgba(124, 108, 255, 0.14);
+}
+.modal-icon.danger {
+  color: var(--negative);
+  background: var(--pill-negative-bg);
+}
+
+.modal-title {
+  margin: 0 0 8px;
+  font-size: 17px;
+  font-weight: 700;
+  color: var(--text);
+  word-break: break-word;
+}
+
+.modal-message {
+  margin: 0 0 22px;
+  font-size: 14px;
+  line-height: 1.6;
+  color: var(--muted);
+  word-break: break-word;
+}
+
+.modal-actions {
+  display: flex;
+  gap: 10px;
+  justify-content: center;
+}
+.modal-actions .btn {
+  min-width: 110px;
+}
