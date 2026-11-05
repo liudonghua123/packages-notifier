@@ -211,6 +211,10 @@ class Poller:
                     }
                 )
                 await self.check_fn(name, old, latest, meta)
+                # Record the new version BEFORE anything else, so a crash
+                # inside the notification path can never cause the next
+                # poll to re-detect the same update and re-send emails.
+                await db.run(db.update_package_version, name, latest)
             elif latest and not old:
                 # first observation: record initial version, no notification
                 await db.run(db.update_package_version, name, latest)

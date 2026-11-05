@@ -31,6 +31,16 @@ def _version_matches(rule: dict, new_version: str) -> bool:
     return True
 
 
+def _already_notified(rule: dict, new_version: str) -> bool:
+    """True if this subscriber was already told about this exact version.
+
+    Guards against duplicate emails when the poller re-detects the
+    same update (e.g. after a crash between detection and version
+    write-back).
+    """
+    return (rule.get("last_notified_version") or "") == new_version
+
+
 def update_email_html(pkg: str, old: str, new: str, meta: dict) -> tuple[str, str]:
     ptype = (meta.get("package_type") or "npm").lower()
     # registry-specific package links
@@ -82,6 +92,10 @@ async def notify_update(pkg: str, old: str, new: str, meta: dict) -> None:
     subject, html = update_email_html(pkg, old, new, meta)
     for rule in subscribers:
         if not _version_matches(rule, new):
+            continue
+        # skip duplicates: this subscriber already got an email for
+        # this exact version
+        if _already_notified(rule, new):
             continue
         email = rule["email"]
         ok, err = True, None

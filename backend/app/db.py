@@ -156,6 +156,13 @@ def delete_subscription(email: str, package: str) -> bool:
     return cur.rowcount > 0
 
 
+def delete_all_subscriptions(email: str) -> int:
+    conn = get_conn()
+    cur = conn.execute("DELETE FROM subscriptions WHERE email=?", (email,))
+    conn.commit()
+    return cur.rowcount
+
+
 def list_subscriptions(email: str | None = None, package: str | None = None) -> list[dict]:
     conn = get_conn()
     q = "SELECT * FROM subscriptions WHERE 1=1"
@@ -182,7 +189,7 @@ def verified_subscribers(package: str) -> list[dict]:
     """Verified subscribers of a package with their version match rules."""
     conn = get_conn()
     rows = conn.execute(
-        "SELECT email, version_match, version_pattern FROM subscriptions "
+        "SELECT email, version_match, version_pattern, last_notified_version FROM subscriptions "
         "WHERE package=? AND verified=1",
         (package,),
     ).fetchall()
@@ -191,6 +198,7 @@ def verified_subscribers(package: str) -> list[dict]:
             "email": r["email"],
             "version_match": r["version_match"] or "any",
             "version_pattern": r["version_pattern"],
+            "last_notified_version": r["last_notified_version"],
         }
         for r in rows
     ]
