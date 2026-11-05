@@ -379,6 +379,67 @@ def _query_gate(email: str) -> None:
         raise HTTPException(403, "verification expired, request a new code")
 
 
+def _verified_remaining(email: str) -> float:
+    """Seconds left in this email's verification window; 0 if none."""
+    verified_at = db.get_query_verified_at(email)
+    if verified_at is None:
+        return 0.0
+    ttl = int(config.verification.get("query_verify_ttl_seconds", 86400))
+    remaining = verified_at + ttl - time.time()
+    return max(0.0, remaining)
+
+
+@router.get("/api/verify/status")
+async def verify_status(email: str) -> dict:
+    """Whether this email is inside a verification window (shared by
+    subscription query / unsubscribe actions)."""
+    email = email.strip().lower()
+    await _validate_email(email)
+    remaining = _verified_remaining(email)
+    return {
+        "verified": remaining > 0,
+        "valid_until": (time.time() + remaining) if remaining > 0 else None,
+    }
+
+
+@router.post("/api/unsubscribe/direct")
+async def unsubscribe_direct(body: dict[str, Any]) -> dict:
+    """Unsubscribe without a verification code.
+
+    Allowed only while the email is inside its verification window
+    (the same TTL that guards /api/subscriptions). Removes one
+    package, or all of them when package is omitted.
+    """
+    email = str(body.get("email", "")).strip().lower()
+    package = str(body.get("package", "")).strip()
+    await _validate_email(email)
+    if package:
+        package = _validate_package_name(package, "npm")
+
+    remaining = _verified_remaining(email)
+    if remaining <= 0:
+        raise HTTPException(403, "email verification required")
+
+    if package:
+        deleted = await db.run(db.delete_subscription, email, package)
+        if not deleted:
+            raise HTTPException(404, "subscription not found")
+        return {
+            "ok": True,
+            "deleted": True,
+            "deleted_count": 1,
+            "valid_until": time.time() + remaining,
+        }
+
+    deleted_count = await db.run(db.delete_all_subscriptions, email)
+    return {
+        "ok": True,
+        "deleted": deleted_count > 0,
+        "deleted_count": deleted_count,
+        "valid_until": time.time() + remaining,
+    }
+
+
 @router.post("/api/subscriptions/request-code")
 async def subscriptions_request_code(body: dict[str, Any]) -> dict:
     """Step 1 of viewing subscriptions: prove email ownership with a code."""

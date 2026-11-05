@@ -123,6 +123,20 @@ export const api = {
       body: JSON.stringify({ email, package: pkg, code }),
     }),
 
+  verifyStatus: (email: string) =>
+    request<{ verified: boolean; valid_until: number | null }>(
+      `/api/verify/status?email=${encodeURIComponent(email)}`
+    ),
+
+  unsubscribeDirect: (email: string, pkg: string) =>
+    request<{ ok: boolean; deleted: boolean; deleted_count: number; valid_until: number | null }>(
+      "/api/unsubscribe/direct",
+      {
+        method: "POST",
+        body: JSON.stringify({ email, package: pkg }),
+      }
+    ),
+
   subscriptionsRequestCode: (email: string) =>
     request<{ ok: boolean; dev_code: string | null }>(
       "/api/subscriptions/request-code",

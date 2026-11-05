@@ -34,6 +34,16 @@ export default function Subscriptions() {
     setBusy(true);
     try {
       const em = email.trim().toLowerCase();
+      // inside a valid verification window: load directly, no code
+      const st = await api.verifyStatus(em);
+      if (st.verified && st.valid_until) {
+        setValidUntil(st.valid_until);
+        localStorage.setItem("pn-email", em);
+        const d = await api.mySubscriptions(em);
+        setSubs(d.subscriptions);
+        setValidUntil(d.valid_until ?? st.valid_until);
+        return;
+      }
       const r = await api.subscriptionsRequestCode(em);
       setDevCode(r.dev_code);
       setStage("code");
@@ -62,13 +72,48 @@ export default function Subscriptions() {
     }
   };
 
+  // Inside the verification window: confirm dialog + immediate removal.
+  // Expired: fall back to the /unsubscribe code flow.
   const remove = async (pkg: string) => {
-    window.location.href = `/unsubscribe?email=${encodeURIComponent(email.trim().toLowerCase())}&package=${encodeURIComponent(pkg)}`;
+    const em = email.trim().toLowerCase();
+    if (validUntil && validUntil * 1000 > Date.now()) {
+      if (!window.confirm(t("subs.removeConfirm", { package: pkg }))) return;
+      setBusy(true);
+      setError("");
+      try {
+        await api.unsubscribeDirect(em, pkg);
+        const d = await api.mySubscriptions(em);
+        setSubs(d.subscriptions);
+        setValidUntil(d.valid_until);
+      } catch (e) {
+        setError(apiErrMessage(e, t));
+      } finally {
+        setBusy(false);
+      }
+      return;
+    }
+    window.location.href = `/unsubscribe?email=${encodeURIComponent(em)}&package=${encodeURIComponent(pkg)}`;
   };
 
-  const removeAll = () => {
-    if (!window.confirm(t("subs.removeAllConfirm"))) return;
-    window.location.href = `/unsubscribe?email=${encodeURIComponent(email.trim().toLowerCase())}`;
+  const removeAll = async () => {
+    const em = email.trim().toLowerCase();
+    if (validUntil && validUntil * 1000 > Date.now()) {
+      if (!window.confirm(t("subs.removeAllConfirm"))) return;
+      setBusy(true);
+      setError("");
+      try {
+        await api.unsubscribeDirect(em, "");
+        const d = await api.mySubscriptions(em);
+        setSubs(d.subscriptions);
+        setValidUntil(d.valid_until);
+      } catch (e) {
+        setError(apiErrMessage(e, t));
+      } finally {
+        setBusy(false);
+      }
+      return;
+    }
+    window.location.href = `/unsubscribe?email=${encodeURIComponent(em)}`;
   };
 
   return (

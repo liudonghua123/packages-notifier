@@ -5,6 +5,7 @@ import { AnimatePresence, motion } from "motion/react";
 import { api, apiErrMessage } from "../api";
 import PackageInput from "../PackageInput";
 import { Enter } from "../motion-bits";
+import { CheckIcon } from "../icons";
 
 export default function Unsubscribe() {
   const { t } = useTranslation();
@@ -16,8 +17,10 @@ export default function Unsubscribe() {
   const [devCode, setDevCode] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
-  const [autoSent, setAutoSent] = useState(false);
   const [deletedCount, setDeletedCount] = useState<number | null>(null);
+  const [trusted, setTrusted] = useState(false);
+  const [trustedUntil, setTrustedUntil] = useState<number | null>(null);
+  const [gateChecked, setGateChecked] = useState(false);
 
   const sendCode = async () => {
     setError("");
@@ -47,19 +50,69 @@ export default function Unsubscribe() {
     }
   };
 
-  // Deep link support: /unsubscribe?email=..&package=.. pre-fills the
-  // form and fires the code request immediately. An empty package
-  // (email only) means "unsubscribe from everything".
-  useEffect(() => {
-    const em = params.get("email");
-    if (!em || autoSent) return;
-    setAutoSent(true);
-    if (em && EMAIL_OK.test(em)) {
-      setEmail(em);
-      sendCode();
+  // Direct removal (no code) while the email is inside its
+  // verification window. An empty package removes everything.
+  const directRemove = async (em: string, p: string) => {
+    setError("");
+    setBusy(true);
+    try {
+      const r = await api.unsubscribeDirect(em, p);
+      setDeletedCount(r.deleted_count ?? null);
+      setStep(3);
+    } catch (e) {
+      setError(apiErrMessage(e, t));
+      // window may have expired mid-flight — fall back to code flow
+      setTrusted(false);
+      setTrustedUntil(null);
+    } finally {
+      setBusy(false);
     }
+  };
+
+  const maybeDirect = (em: string, p: string) => {
+    if (!trusted) return false;
+    const msg = p
+      ? t("unsubscribe.directConfirmPkg", { package: p })
+      : t("unsubscribe.directConfirmAll");
+    if (!window.confirm(msg)) return true; // treated as handled: user cancelled
+    directRemove(em, p);
+    return true;
+  };
+
+  // Deep link support: /unsubscribe?email=..&package=.. —
+  // inside a verification window this removes directly (with a
+  // confirm dialog); otherwise it pre-fills and auto-sends a code.
+  useEffect(() => {
+    if (gateChecked) return;
+    setGateChecked(true);
+    const em = (params.get("email") || "").trim().toLowerCase();
+    const p = params.get("package") || "";
+    if (!em || !EMAIL_OK.test(em)) return;
+    setEmail(em);
+    setPkg(p);
+    (async () => {
+      try {
+        const s = await api.verifyStatus(em);
+        setTrusted(s.verified);
+        setTrustedUntil(s.valid_until);
+        if (s.verified) {
+          if (maybeDirect(em, p)) return;
+          return;
+        }
+      } catch {
+        /* status check failed — fall through to code flow */
+      }
+      sendCode();
+    })();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  // Manual submit from step 1: try direct removal first.
+  const submitStep1 = () => {
+    const em = email.trim().toLowerCase();
+    if (maybeDirect(em, pkg.trim())) return;
+    sendCode();
+  };
 
   return (
     <div style={{ maxWidth: 520, margin: "0 auto" }}>
@@ -68,6 +121,13 @@ export default function Unsubscribe() {
           <span className="grad">{t("unsubscribe.title")}</span>
         </h1>
       </Enter>
+
+      {trusted && step < 3 && trustedUntil && (
+        <p className="row" style={{ gap: 8, color: "var(--positive)", fontSize: 13, margin: "0 0 16px" }}>
+          <CheckIcon size={14} />
+          {t("unsubscribe.trustedUntil", { time: new Date(trustedUntil * 1000).toLocaleString() })}
+        </p>
+      )}
 
       <AnimatePresence mode="wait">
         {step === 1 && (
@@ -84,8 +144,13 @@ export default function Unsubscribe() {
               {t("unsubscribe.allHint")}
             </p>
             {error && <p className="error-text" role="alert">{error}</p>}
-            <button className="btn btn-danger" onClick={sendCode} disabled={busy || !email} style={{ width: "100%" }}>
-              {busy ? t("unsubscribe.requesting") : t("unsubscribe.request")}
+            <button
+              className="btn btn-danger"
+              onClick={submitStep1}
+              disabled={busy || !email}
+              style={{ width: "100%" }}
+            >
+              {busy ? t("unsubscribe.requesting") : trusted ? t("unsubscribe.directBtn") : t("unsubscribe.request")}
             </button>
           </motion.div>
         )}
