@@ -42,6 +42,24 @@ app.include_router(admin_router)
 app.mount("/mcp", mcp_app)
 
 
+class MCPSlashFix:
+    """Starlette's Mount("/mcp") does not match the bare path "/mcp", so requests
+    to /mcp (no trailing slash) fall through to the SPA catch-all and return
+    HTML — clients then fail with 'Invalid content type, expected
+    "text/event-stream"'. Rewrite /mcp -> /mcp/ before routing."""
+
+    def __init__(self, app):
+        self.app = app
+
+    async def __call__(self, scope, receive, send):
+        if scope["type"] == "http" and scope["path"] == "/mcp":
+            scope = dict(scope, path="/mcp/")
+        await self.app(scope, receive, send)
+
+
+app.add_middleware(MCPSlashFix)
+
+
 @app.get("/api/poller/status")
 async def poller_status() -> dict:
     return {
