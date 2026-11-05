@@ -118,7 +118,7 @@ export const api = {
     }),
 
   unsubscribeVerify: (email: string, pkg: string, code: string) =>
-    request<{ ok: boolean; deleted: boolean }>("/api/unsubscribe/verify", {
+    request<{ ok: boolean; deleted: boolean; deleted_count: number }>("/api/unsubscribe/verify", {
       method: "POST",
       body: JSON.stringify({ email, package: pkg, code }),
     }),

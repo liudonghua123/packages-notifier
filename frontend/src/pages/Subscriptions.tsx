@@ -63,7 +63,12 @@ export default function Subscriptions() {
   };
 
   const remove = async (pkg: string) => {
-    window.location.href = `/unsubscribe?email=${encodeURIComponent(email)}&package=${encodeURIComponent(pkg)}`;
+    window.location.href = `/unsubscribe?email=${encodeURIComponent(email.trim().toLowerCase())}&package=${encodeURIComponent(pkg)}`;
+  };
+
+  const removeAll = () => {
+    if (!window.confirm(t("subs.removeAllConfirm"))) return;
+    window.location.href = `/unsubscribe?email=${encodeURIComponent(email.trim().toLowerCase())}`;
   };
 
   return (
@@ -189,6 +194,15 @@ export default function Subscriptions() {
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.5, ease: [0.32, 0.72, 0, 1] }}
               >
+                <div className="row" style={{ justifyContent: "flex-end", marginBottom: 8 }}>
+                  <button
+                    className="btn btn-ghost"
+                    style={{ height: 30, padding: "0 12px", fontSize: 12, color: "var(--negative)" }}
+                    onClick={removeAll}
+                  >
+                    {t("subs.removeAll")}
+                  </button>
+                </div>
                 {subs.map((s, i) => (
                   <motion.div
                     key={s.package}

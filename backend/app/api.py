@@ -317,9 +317,10 @@ async def unsubscribe_request_code(body: dict[str, Any]) -> dict:
     email = str(body.get("email", "")).strip().lower()
     package = str(body.get("package", "")).strip()
     await _validate_email(email)
-    package = _validate_package_name(package, "npm")
+    if package:
+        package = _validate_package_name(package, "npm")
 
-    subs = await db.run(db.list_subscriptions, email, package)
+    subs = await db.run(db.list_subscriptions, email, package or None)
     if not subs:
         raise HTTPException(404, "subscription not found")
 
@@ -329,11 +330,14 @@ async def unsubscribe_request_code(body: dict[str, Any]) -> dict:
         raise HTTPException(429, "too many code requests, try later")
 
     code = _gen_code()
+    # empty package payload means "unsubscribe from everything"
     await db.run(
         db.create_code, email, "unsubscribe", code, {"package": package},
         int(config.verification.get("code_ttl_seconds", 600)),
     )
-    subject, html = verification_email_html(code, "unsubscribe", package, _ttl_minutes())
+    subject, html = verification_email_html(
+        code, "unsubscribe", package or None, _ttl_minutes()
+    )
     await send_email(email, subject, html)
     return {"ok": True, "dev_code": code if not config.smtp.get("host") else None}
 
@@ -354,8 +358,13 @@ async def unsubscribe_verify(body: dict[str, Any]) -> dict:
     if payload.get("package", package) != package:
         raise HTTPException(400, "code does not match this package")
 
-    deleted = await db.run(db.delete_subscription, email, package)
-    return {"ok": True, "deleted": deleted}
+    if package:
+        deleted = await db.run(db.delete_subscription, email, package)
+        return {"ok": True, "deleted": deleted, "deleted_count": 1 if deleted else 0}
+
+    # no package: remove every subscription for this email
+    deleted_count = await db.run(db.delete_all_subscriptions, email)
+    return {"ok": True, "deleted": deleted_count > 0, "deleted_count": deleted_count}
 
 
 def _query_gate(email: str) -> None:

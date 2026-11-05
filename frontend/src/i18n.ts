@@ -92,9 +92,17 @@ const en = {
   unsubscribe: {
     title: "Unsubscribe",
     request: "Request code",
+    requesting: "Sending…",
     confirm: "Verify & remove",
+    confirming: "Removing…",
     success: "Unsubscribed from {{package}}.",
+    successAll: "Done — removed {{count}} subscription(s).",
     notFound: "No such subscription.",
+    pkgOptional: "Package (leave empty to remove everything)",
+    pkgAllHint: "Empty = unsubscribe all",
+    allHint: "Leave the package field empty to remove all subscriptions for this email.",
+    codeSentPkg: "Code sent to {{email}} for {{package}}. Check your inbox.",
+    codeSentAll: "Code sent to {{email}}. Verifying will remove ALL your subscriptions.",
   },
   subs: {
     title: "Your subscriptions",
@@ -119,6 +127,8 @@ const en = {
     none: "No subscriptions yet.",
     noneHint: "Subscribe from the home page to start watching.",
     remove: "Remove",
+    removeAll: "Unsubscribe all",
+    removeAllConfirm: "Remove ALL subscriptions for this email?",
   },
   admin: {
     title: "Admin console",
@@ -276,9 +286,17 @@ const zh = {
   unsubscribe: {
     title: "取消订阅",
     request: "发送验证码",
+    requesting: "发送中…",
     confirm: "验证并取消",
+    confirming: "取消中…",
     success: "已取消关注 {{package}}。",
+    successAll: "完成——已移除 {{count}} 条订阅。",
     notFound: "没有找到该订阅。",
+    pkgOptional: "包名（留空则取消全部订阅）",
+    pkgAllHint: "留空 = 取消所有",
+    allHint: "包名留空时，将移除该邮箱下的全部订阅。",
+    codeSentPkg: "验证码已发送至 {{email}}（{{package}}），请查收邮箱。",
+    codeSentAll: "验证码已发送至 {{email}}。验证后将移除你的全部订阅。",
   },
   subs: {
     title: "我的订阅",
@@ -303,6 +321,8 @@ const zh = {
     none: "还没有订阅。",
     noneHint: "回首页订阅一个包即可开始。",
     remove: "移除",
+    removeAll: "取消全部订阅",
+    removeAllConfirm: "确定移除该邮箱下的全部订阅吗？",
   },
   admin: {
     title: "管理后台",
